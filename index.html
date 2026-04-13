@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treasure Fortune - Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <i class="fas fa-gem"></i>
+                <span>Treasure Fortune</span>
+            </div>
+        </div>
+        <div class="navbar-right">
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <div class="notification-icon" id="notificationIcon">
+                <i class="fas fa-bell"></i>
+                <span class="badge" id="notificationBadge">0</span>
+            </div>
+            <div class="user-profile" id="userProfile">
+                <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=7c3aed&color=fff" alt="User Avatar">
+                <span class="user-name" id="displayUserName">User</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <a href="#" data-page="profile"><i class="fas fa-user"></i> My Profile</a>
+                <a href="#" data-page="settings"><i class="fas fa-cog"></i> Settings</a>
+                <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-page="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-page="loans">
+                <i class="fas fa-hand-holding-usd"></i>
+                <span>My Loans</span>
+            </a>
+            <a href="#" class="nav-item" data-page="savings">
+                <i class="fas fa-piggy-bank"></i>
+                <span>Savings</span>
+            </a>
+            <a href="#" class="nav-item" data-page="transactions">
+                <i class="fas fa-history"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="#" class="nav-item" data-page="notifications">
+                <i class="fas fa-bell"></i>
+                <span>Notifications</span>
+            </a>
+            <a href="#" class="nav-item" data-page="settings">
+                <i class="fas fa-user-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="#" class="nav-item logout" id="sidebarLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Dashboard Page -->
+        <section id="dashboardPage" class="page active">
+            <div class="welcome-section">
+                <h1 class="greeting">Welcome back, <span id="userName">User</span></h1>
+                <p class="motivational-text">Here's your financial overview</p>
+            </div>
+
+            <div class="summary-cards">
+                <div class="card summary-card">
+                    <div class="card-icon savings">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-label">Total Savings</p>
+                        <h2 class="card-value" id="totalSavings">₦0</h2>
+                    </div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="card-icon loan">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-label">Active Loan</p>
+                        <h2 class="card-value" id="activeLoan">₦0</h2>
+                    </div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="card-icon remaining">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-label">Remaining Balance</p>
+                        <h2 class="card-value" id="remainingLoan">₦0</h2>
+                    </div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="card-icon payment">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-label">Next Payment</p>
+                        <h2 class="card-value date" id="nextPayment">-</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-section">
+                <div class="card action-card">
+                    <h3>Quick Actions</h3>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="makePaymentBtn">
+                            <i class="fas fa-money-bill-wave"></i> Make Payment
+                        </button>
+                        <button class="btn btn-success" id="addSavingsBtn">
+                            <i class="fas fa-plus-circle"></i> Add Savings
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card progress-card">
+                    <h3>Loan Repayment Progress</h3>
+                    <div class="progress-info">
+                        <span id="progressPercent">0% Complete</span>
+                        <span id="progressPaid">₦0 paid</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <p class="progress-note" id="progressRemaining">₦0 remaining</p>
+                </div>
+            </div>
+
+            <div class="transactions-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recent Transactions</h3>
+                        <a href="#" class="view-all" data-page="transactions">View All</a>
+                    </div>
+                    <div class="transactions-list" id="recentTransactionsList">
+                        <div class="empty-state-small">No transactions yet</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- My Loans Page -->
+        <section id="loansPage" class="page">
+            <div class="page-header">
+                <h1>My Loans</h1>
+                <p>Manage your loan and repayments</p>
+            </div>
+
+            <!-- No Loan State -->
+            <div class="loan-details-section" id="noLoanState">
+                <div class="card">
+                    <div class="no-loan-message">
+                        <i class="fas fa-hand-holding-usd" style="font-size: 48px; color: var(--primary-color); margin-bottom: 16px;"></i>
+                        <p>You currently have no active loan</p>
+                    </div>
+                    <button class="btn btn-primary" id="borrowLoanBtn">
+                        <i class="fas fa-plus-circle"></i> Borrow Loan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Loan State -->
+            <div class="loan-details-section" id="activeLoanState" style="display: none;">
+                <div class="card">
+                    <h3>Loan Details</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="label">Loan Amount</span>
+                            <span class="value" id="loanAmount">₦0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Remaining Balance</span>
+                            <span class="value highlight" id="loanRemaining">₦0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Amount Paid</span>
+                            <span class="value" id="loanPaid">₦0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Progress</span>
+                            <span class="value" id="loanProgress">0%</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="makeRepaymentBtn">
+                        <i class="fas fa-money-bill-wave"></i> Make Repayment
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loan Completion Success Overlay -->
+        <div class="loan-success-overlay" id="loanSuccessOverlay">
+            <div class="loan-success-content">
+                <div class="success-checkmark">
+                    <svg viewBox="0 0 52 52">
+                        <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+                <h2>Loan Repaid!</h2>
+                <p>🎉 Congratulations!</p>
+                <p>You have fully repaid your loan.</p>
+            </div>
+        </div>
+
+        <!-- Savings Page -->
+        <section id="savingsPage" class="page">
+            <div class="page-header">
+                <h1>Savings</h1>
+                <p>Grow your wealth with consistent savings</p>
+            </div>
+
+            <div class="savings-overview">
+                <div class="card">
+                    <h3>Savings Balance</h3>
+                    <div class="balance-display">
+                        <h2 id="savingsBalance">₦0</h2>
+                    </div>
+                    <div class="savings-form">
+                        <input type="number" id="savingsInput" placeholder="Enter amount" min="100">
+                        <button class="btn btn-success" id="addSavingsSubmit">
+                            <i class="fas fa-plus-circle"></i> Add Savings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transactions Page -->
+        <section id="transactionsPage" class="page">
+            <div class="page-header">
+                <h1>Transaction History</h1>
+                <p>View all your financial activities</p>
+            </div>
+
+            <div class="card">
+                <div class="transactions-list" id="allTransactionsList">
+                    <div class="empty-state-small">No transactions yet</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notifications Page -->
+        <section id="notificationsPage" class="page">
+            <div class="page-header">
+                <h1>Notifications</h1>
+                <p>Stay updated with your account activities</p>
+            </div>
+
+            <div class="card">
+                <div class="notifications-list" id="notificationsList">
+                    <div class="empty-state-small">No notifications</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Page -->
+        <section id="settingsPage" class="page">
+            <div class="page-header">
+                <h1>Profile Settings</h1>
+                <p>Manage your account information</p>
+            </div>
+
+            <div class="card">
+                <h3>Personal Information</h3>
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="settingsName" placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="settingsEmail" placeholder="Enter your email">
+                    </div>
+                    <button class="btn btn-success" id="saveSettingsBtn">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- My Profile Page -->
+        <section id="profilePage" class="page">
+            <div class="page-header">
+                <h1>My Profile</h1>
+                <p>View and manage your account</p>
+            </div>
+
+            <div class="profile-section">
+                <div class="card profile-card">
+                    <div class="profile-header">
+                        <img id="profileAvatar" src="" alt="Profile Picture" class="profile-avatar">
+                        <div class="profile-info">
+                            <h2 id="profileName">User Name</h2>
+                            <p id="profileEmail">user@email.com</p>
+                        </div>
+                    </div>
+                    <div class="profile-stats">
+                        <div class="stat-box">
+                            <span class="stat-label">Total Savings</span>
+                            <span class="stat-value" id="profileSavings">₦0</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Active Loans</span>
+                            <span class="stat-value" id="profileLoans">₦0</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Transactions</span>
+                            <span class="stat-value" id="profileTransactions">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Payment/Savings -->
+    <div class="modal" id="actionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Action</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label id="modalLabel">Enter Amount</label>
+                    <input type="number" id="modalInput" placeholder="Enter amount" min="100">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="modalCancel">Cancel</button>
+                <button class="btn btn-primary" id="modalSubmit">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Transfer Modal (Shared for Payment & Savings) -->
+    <div class="modal" id="bankTransferModal">
+        <div class="modal-content payment-modal-content">
+            <div class="modal-header">
+                <h3 id="bankTransferTitle">Bank Transfer</h3>
+                <button class="modal-close" id="bankTransferModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="bank-details">
+                    <h4>Bank Transfer Details</h4>
+                    <div class="bank-info">
+                        <div class="info-row">
+                            <span class="info-label">Bank Name</span>
+                            <span class="info-value">Opay / PalmPay / Access Bank</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Account Name</span>
+                            <span class="info-value">Treasure Fortune Co-op</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Account Number</span>
+                            <span class="info-value account-number">1234567890</span>
+                            <button class="copy-btn" id="copyAccountBtn">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="amountFormGroup">
+                    <label id="amountFormLabel">Enter Amount</label>
+                    <input type="number" id="transferAmountInput" placeholder="Enter amount" min="100">
+                </div>
+                
+                <p class="instruction-text" id="transferInstruction">
+                    Transfer this amount to the account above, then confirm below.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="bankTransferCancel">Cancel</button>
+                <button class="btn btn-primary" id="confirmTransferBtn">I Have Made Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Payment Modal -->
+    <div class="modal" id="simplePaymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Make Loan Repayment</h3>
+                <button class="modal-close" id="closeSimplePayment">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="payment-summary">
+                    <div class="summary-row">
+                        <span>Loan Balance</span>
+                        <span id="modalLoanBalance">₦0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Amount Paid</span>
+                        <span id="modalLoanPaid">₦0</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Enter Payment Amount</label>
+                    <input type="number" id="simplePaymentAmount" placeholder="Enter amount" min="100">
+                </div>
+                <div class="quick-amounts">
+                    <button class="quick-amount-btn" data-amount="5000">₦5,000</button>
+                    <button class="quick-amount-btn" data-amount="10000">₦10,000</button>
+                    <button class="quick-amount-btn" data-amount="25000">₦25,000</button>
+                    <button class="quick-amount-btn" data-amount="50000">₦50,000</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelSimplePayment">Cancel</button>
+                <button class="btn btn-primary" id="confirmSimplePayment">Pay Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Borrow Loan Modal -->
+    <div class="modal" id="borrowLoanModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Request Loan</h3>
+                <button class="modal-close" id="borrowLoanModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Loan Amount</label>
+                    <input type="number" id="loanAmountInput" placeholder="Enter loan amount" min="1000">
+                </div>
+                <div class="form-group">
+                    <label>Purpose (Optional)</label>
+                    <input type="text" id="loanPurposeInput" placeholder="What is this loan for?">
+                </div>
+                <p class="sharia-notice">
+                    <i class="fas fa-info-circle"></i> All loans are interest-free (Sharia-compliant)
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="borrowLoanCancel">Cancel</button>
+                <button class="btn btn-primary" id="submitLoanBtn">Submit Request</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Loader Overlay -->
+    <div class="processing-overlay" id="processingOverlay">
+        <div class="processing-content">
+            <div class="spinner-container">
+                <div class="spinner-glow"></div>
+                <div class="spinner"></div>
+            </div>
+            <h3 id="processingText">
+                Processing your payment<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+            </h3>
+            <p id="processingSubtext">Please wait while we verify your transaction</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
