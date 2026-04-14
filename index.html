@@ -249,15 +249,22 @@
             </div>
 
             <div class="savings-overview">
-                <div class="card">
-                    <h3>Savings Balance</h3>
-                    <div class="balance-display">
+                <div class="card savings-card">
+                    <div class="savings-header">
+                        <h3>Your Savings</h3>
+                        <span class="wallet-badge">From Wallet</span>
+                    </div>
+                    <div class="balance-display large">
                         <h2 id="savingsBalance">₦0</h2>
                     </div>
+                    <div class="wallet-info">
+                        <span>Wallet Balance: </span>
+                        <span id="savingsWalletBalance">₦0</span>
+                    </div>
                     <div class="savings-form">
-                        <input type="number" id="savingsInput" placeholder="Enter amount" min="100">
+                        <input type="number" id="savingsInput" placeholder="Enter amount to save" min="100">
                         <button class="btn btn-success" id="addSavingsSubmit">
-                            <i class="fas fa-plus-circle"></i> Add Savings
+                            <i class="fas fa-plus-circle"></i> Add to Savings
                         </button>
                     </div>
                 </div>

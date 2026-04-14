@@ -19,7 +19,7 @@ class AppState {
         if (savedState) {
             const state = JSON.parse(savedState);
             this.user = state.user || { name: 'User', email: '' };
-            this.wallet = state.wallet || 50000;
+            this.wallet = state.wallet || 0;
             this.savings = state.savings || 0;
             this.loan = state.loan || { amount: 0, paid: 0 };
             this.transactions = state.transactions || [];
@@ -213,6 +213,7 @@ class UIController {
         
         // Savings page
         this.savingsBalance = document.getElementById('savingsBalance');
+        this.savingsWalletBalance = document.getElementById('savingsWalletBalance');
         this.savingsInput = document.getElementById('savingsInput');
         this.addSavingsSubmit = document.getElementById('addSavingsSubmit');
         
@@ -297,11 +298,6 @@ class UIController {
         });
 
         document.getElementById('makeRepaymentBtn')?.addEventListener('click', () => {
-            // Check if wallet has sufficient balance
-            if (this.appState.wallet < this.appState.getLoanRemaining()) {
-                this.showToast('error', 'Insufficient Balance', 'Your wallet balance is low. Please top up to make payment.');
-                return;
-            }
             this.openBankTransferModal('payment');
         });
         
@@ -439,8 +435,6 @@ class UIController {
                 break;
             case 'notifications':
                 this.updateNotificationsPage();
-                this.appState.clearNotifications();
-                this.updateUI();
                 break;
             case 'settings':
                 this.updateSettingsPage();
@@ -544,6 +538,9 @@ class UIController {
 
     updateSavingsPage() {
         this.savingsBalance.textContent = `₦${this.appState.savings.toLocaleString()}`;
+        if (this.savingsWalletBalance) {
+            this.savingsWalletBalance.textContent = `₦${this.appState.wallet.toLocaleString()}`;
+        }
     }
 
     updateTransactionsPage() {
@@ -827,10 +824,17 @@ class UIController {
             return;
         }
         
-        // For payment, check wallet balance
-        if (this.transferType === 'payment' && this.appState.wallet < amount) {
-            this.showToast('error', 'Insufficient Balance', 'Your wallet balance is low. Please top up to make payment.');
-            return;
+        // For payment, check remaining loan balance and wallet
+        if (this.transferType === 'payment') {
+            const remainingLoan = this.appState.getLoanRemaining();
+            if (amount > remainingLoan) {
+                this.showToast('warning', 'Amount Too High', `You cannot pay more than your remaining loan balance (₦${remainingLoan.toLocaleString()})`);
+                return;
+            }
+            if (this.appState.wallet < amount) {
+                this.showToast('error', 'Insufficient Balance', 'Your wallet balance is low. Please top up to make payment.');
+                return;
+            }
         }
 
         // Close modal
@@ -906,7 +910,16 @@ class UIController {
                 
                 this.appState.transactions.unshift(transaction);
                 this.appState.addNotification('success', 'Top Up Successful', `₦${amount.toLocaleString()} added to your wallet`);
-            } else {
+            } else if (this.transferType === 'savings') {
+                // Check wallet balance for savings
+                if (this.appState.wallet < amount) {
+                    this.showToast('error', 'Insufficient Balance', 'Your wallet balance is low. Please top up to save.');
+                    return;
+                }
+                
+                // Deduct from wallet
+                this.appState.wallet -= amount;
+                
                 // Handle savings
                 const transaction = {
                     id: Date.now(),
