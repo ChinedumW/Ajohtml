@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!localStorage.getItem('treasureFortuneState')) {
                     const initialState = {
                         user: { name: user.name, email: user.email },
+                        wallet: 50000, // Initial wallet balance
                         savings: 0,
                         loan: { amount: 0, paid: 0 },
                         transactions: [],

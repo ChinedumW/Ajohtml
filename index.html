@@ -85,8 +85,21 @@
 
             <div class="summary-cards">
                 <div class="card summary-card">
-                    <div class="card-icon savings">
+                    <div class="card-icon wallet">
                         <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-label">Wallet Balance</p>
+                        <h2 class="card-value" id="walletBalance">₦0</h2>
+                        <button class="btn btn-small btn-outline" id="topUpBtn">
+                            <i class="fas fa-plus"></i> Top Up
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="card-icon savings">
+                        <i class="fas fa-piggy-bank"></i>
                     </div>
                     <div class="card-content">
                         <p class="card-label">Total Savings</p>
@@ -400,6 +413,54 @@
             <div class="modal-footer">
                 <button class="btn btn-outline" id="bankTransferCancel">Cancel</button>
                 <button class="btn btn-primary" id="confirmTransferBtn">I Have Made Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Up Wallet Modal -->
+    <div class="modal" id="topUpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Top Up Wallet</h3>
+                <button class="modal-close" id="closeTopUpModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="current-balance">
+                    <span>Current Balance:</span>
+                    <span id="currentWalletBalance">₦0</span>
+                </div>
+                <div class="form-group">
+                    <label>Enter Amount</label>
+                    <input type="number" id="topUpAmount" placeholder="Enter amount" min="100">
+                </div>
+                <div class="quick-amounts">
+                    <button class="quick-amount-btn" data-amount="5000">₦5,000</button>
+                    <button class="quick-amount-btn" data-amount="10000">₦10,000</button>
+                    <button class="quick-amount-btn" data-amount="25000">₦25,000</button>
+                    <button class="quick-amount-btn" data-amount="50000">₦50,000</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelTopUp">Cancel</button>
+                <button class="btn btn-primary" id="confirmTopUp">Top Up Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Confirm Action</h3>
+                <button class="modal-close" id="closeConfirmModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure?</p>
+                <p class="confirm-amount" id="confirmAmount"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelConfirm">Cancel</button>
+                <button class="btn btn-primary" id="confirmAction">Confirm</button>
             </div>
         </div>
     </div>
