@@ -891,6 +891,21 @@ class UIController {
                     
                     return; // Exit early to avoid duplicate updateUI
                 }
+            } else if (this.transferType === 'topup') {
+                // Handle topup - add to wallet
+                this.appState.wallet += amount;
+                
+                const transaction = {
+                    id: Date.now(),
+                    type: 'topup',
+                    amount: amount,
+                    date: new Date().toISOString().split('T')[0],
+                    description: 'Wallet Top Up',
+                    status: 'successful'
+                };
+                
+                this.appState.transactions.unshift(transaction);
+                this.appState.addNotification('success', 'Top Up Successful', `₦${amount.toLocaleString()} added to your wallet`);
             } else {
                 // Handle savings
                 const transaction = {
