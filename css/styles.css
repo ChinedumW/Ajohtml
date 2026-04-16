@@ -1595,9 +1595,102 @@ body {
     color: var(--text-secondary);
 }
 
+/* Avatar Upload */
+.avatar-container {
+    position: relative;
+}
+
+.avatar-upload-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    border: 3px solid white;
+    box-shadow: var(--shadow-sm);
+}
+
+.avatar-upload-btn:hover {
+    background: var(--primary-dark);
+}
+
+/* Edit Profile Form */
+.edit-profile-form {
+    background: var(--secondary-bg);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 24px;
+}
+
+.edit-profile-form .form-group {
+    margin-bottom: 16px;
+}
+
+.edit-profile-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.edit-profile-form input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--primary-lighter);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+}
+
+.edit-profile-form input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.profile-header .btn-outline {
+    margin-left: auto;
+}
+
+/* Profile Stats Grid */
 .profile-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .profile-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .profile-header {
+        flex-wrap: wrap;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .profile-header .btn-outline {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+/* Stats */
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
 }
 

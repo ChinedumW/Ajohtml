@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Initialize user state if not exists
                 if (!localStorage.getItem('treasureFortuneState')) {
                     const initialState = {
-                        user: { name: user.name, email: user.email },
+                        user: { name: user.name, email: user.email, avatar: null },
                         wallet: 50000, // Initial wallet balance
                         savings: 0,
                         loan: { amount: 0, paid: 0 },

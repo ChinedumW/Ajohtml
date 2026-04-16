@@ -6,6 +6,8 @@
     <title>Treasure Fortune - Dashboard</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    //Add website logo
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
     <!-- Top Navbar -->
@@ -334,13 +336,43 @@
             <div class="profile-section">
                 <div class="card profile-card">
                     <div class="profile-header">
-                        <img id="profileAvatar" src="" alt="Profile Picture" class="profile-avatar">
+                        <div class="avatar-container">
+                            <img id="profileAvatar" src="" alt="Profile Picture" class="profile-avatar">
+                            <label for="avatarUpload" class="avatar-upload-btn">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                            <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+                        </div>
                         <div class="profile-info">
                             <h2 id="profileName">User Name</h2>
                             <p id="profileEmail">user@email.com</p>
                         </div>
+                        <button class="btn btn-outline btn-small" id="editProfileBtn">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
                     </div>
+                    
+                    <!-- Edit Profile Form (Hidden by default) -->
+                    <div class="edit-profile-form" id="editProfileForm" style="display: none;">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="editName" placeholder="Enter your name">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="editEmail" placeholder="Enter your email">
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-outline" id="cancelEditBtn">Cancel</button>
+                            <button class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
+                        </div>
+                    </div>
+                    
                     <div class="profile-stats">
+                        <div class="stat-box">
+                            <span class="stat-label">Wallet Balance</span>
+                            <span class="stat-value" id="profileWallet">₦0</span>
+                        </div>
                         <div class="stat-box">
                             <span class="stat-label">Total Savings</span>
                             <span class="stat-value" id="profileSavings">₦0</span>

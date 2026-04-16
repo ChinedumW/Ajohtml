@@ -18,7 +18,7 @@ class AppState {
         const savedState = localStorage.getItem('treasureFortuneState');
         if (savedState) {
             const state = JSON.parse(savedState);
-            this.user = state.user || { name: 'User', email: '' };
+            this.user = state.user || { name: 'User', email: '', avatar: null };
             this.wallet = state.wallet || 0;
             this.savings = state.savings || 0;
             this.loan = state.loan || { amount: 0, paid: 0 };
@@ -26,7 +26,7 @@ class AppState {
             this.notifications = state.notifications || [];
         } else {
             // Initialize with default data
-            this.user = { name: 'Fatima Ahmed', email: 'fatima@example.com' };
+            this.user = { name: 'Fatima Ahmed', email: 'fatima@example.com', avatar: null };
             this.wallet = 50000;
             this.savings = 1250000;
             this.loan = { amount: 500000, paid: 125000 };
@@ -573,12 +573,24 @@ class UIController {
     }
 
     updateProfilePage() {
-        this.profileAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.appState.user.name)}&background=5b21b6&color=fff&size=200`;
+        // Show avatar - use uploaded or generate from name
+        if (this.appState.user.avatar) {
+            this.profileAvatar.src = this.appState.user.avatar;
+        } else {
+            this.profileAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.appState.user.name)}&background=5b21b6&color=fff&size=200`;
+        }
         this.profileName.textContent = this.appState.user.name;
         this.profileEmail.textContent = this.appState.user.email || 'No email set';
+        this.profileWallet.textContent = `₦${this.appState.wallet.toLocaleString()}`;
         this.profileSavings.textContent = `₦${this.appState.savings.toLocaleString()}`;
         this.profileLoans.textContent = `₦${this.appState.getLoanRemaining().toLocaleString()}`;
         this.profileTransactions.textContent = this.appState.transactions.length.toString();
+        
+        // Update edit form values
+        if (document.getElementById('editName')) {
+            document.getElementById('editName').value = this.appState.user.name;
+            document.getElementById('editEmail').value = this.appState.user.email || '';
+        }
     }
 
     renderTransactions(container, transactions) {
