@@ -24,6 +24,7 @@ class AppState {
             this.loan = state.loan || { amount: 0, paid: 0 };
             this.transactions = state.transactions || [];
             this.notifications = state.notifications || [];
+            this.adminRequests = state.adminRequests || [];
         } else {
             // Initialize with default data
             this.user = { name: 'Fatima Ahmed', email: 'fatima@example.com', avatar: null };
@@ -39,6 +40,7 @@ class AppState {
                 { id: 1, type: 'warning', title: 'Payment Due Soon', message: 'Your next loan payment is due in 5 days', time: '2 hours ago' },
                 { id: 2, type: 'success', title: 'Savings Added', message: 'You successfully added ₦50,000 to your savings', time: '1 day ago' }
             ];
+            this.adminRequests = [];
             this.saveState();
         }
     }
@@ -50,9 +52,40 @@ class AppState {
             savings: this.savings,
             loan: this.loan,
             transactions: this.transactions,
-            notifications: this.notifications
+            notifications: this.notifications,
+            adminRequests: this.adminRequests
         };
         localStorage.setItem('treasureFortuneState', JSON.stringify(state));
+    }
+
+    // Admin request methods
+    addAdminRequest(request) {
+        this.adminRequests.push(request);
+        this.saveState();
+    }
+
+    getAdminRequests() {
+        return this.adminRequests;
+    }
+
+    updateAdminRequest(requestId, status, updateBalances = false) {
+        const request = this.adminRequests.find(r => r.id === requestId);
+        if (request) {
+            request.status = status;
+            
+            if (updateBalances && status === 'Approved') {
+                if (request.type === 'Top-up') {
+                    this.wallet += request.amount;
+                } else if (request.type === 'Loan Repayment') {
+                    this.loan.paid += request.amount;
+                } else if (request.type === 'Savings') {
+                    this.wallet -= request.amount;
+                    this.savings += request.amount;
+                }
+            }
+            
+            this.saveState();
+        }
     }
 
     addSavings(amount) {
@@ -230,6 +263,20 @@ class UIController {
         this.settingsName = document.getElementById('settingsName');
         this.settingsEmail = document.getElementById('settingsEmail');
         this.saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        
+        // Profile page
+        this.profileAvatar = document.getElementById('profileAvatar');
+        this.avatarUpload = document.getElementById('avatarUpload');
+        this.editProfileBtn = document.getElementById('editProfileBtn');
+        this.editProfileForm = document.getElementById('editProfileForm');
+        this.cancelEditBtn = document.getElementById('cancelEditBtn');
+        this.saveProfileBtn = document.getElementById('saveProfileBtn');
+        this.profileName = document.getElementById('profileName');
+        this.profileEmail = document.getElementById('profileEmail');
+        this.profileWallet = document.getElementById('profileWallet');
+        this.profileSavings = document.getElementById('profileSavings');
+        this.profileLoans = document.getElementById('profileLoans');
+        this.profileTransactions = document.getElementById('profileTransactions');
     }
 
     attachEventListeners() {
@@ -341,6 +388,23 @@ class UIController {
             this.handleSaveSettings();
         });
         
+        // Profile page - Image upload and Edit profile
+        this.avatarUpload?.addEventListener('change', (e) => {
+            this.handleAvatarUpload(e);
+        });
+        
+        this.editProfileBtn?.addEventListener('click', () => {
+            this.showEditProfileForm();
+        });
+        
+        this.cancelEditBtn?.addEventListener('click', () => {
+            this.hideEditProfileForm();
+        });
+        
+        this.saveProfileBtn?.addEventListener('click', () => {
+            this.handleSaveProfile();
+        });
+        
         // Modal
         this.modalSubmit.addEventListener('click', () => {
             this.handleModalSubmit();
@@ -372,13 +436,44 @@ class UIController {
             this.handleLogout();
         });
         
-        // Bank Transfer Modal Events (Unified for Payment & Savings)
-        document.getElementById('bankTransferModalClose')?.addEventListener('click', () => this.closeBankTransferModal());
-        document.getElementById('bankTransferCancel')?.addEventListener('click', () => this.closeBankTransferModal());
-        document.getElementById('confirmTransferBtn')?.addEventListener('click', () => this.handleTransferConfirmation());
+        // Payment Modal Events (Unified for Payment & Savings)
+        document.getElementById('paymentModalClose')?.addEventListener('click', () => this.closePaymentModal());
+        document.getElementById('paymentCancel')?.addEventListener('click', () => this.closePaymentModal());
+        document.getElementById('confirmPaymentBtn')?.addEventListener('click', () => this.handlePaymentConfirmation());
         document.getElementById('copyAccountBtn')?.addEventListener('click', () => this.copyAccountNumber());
+        document.getElementById('receiptUpload')?.addEventListener('change', (e) => this.handleReceiptUpload(e));
+        
+        // Payment method tabs
+        document.querySelectorAll('.payment-method-tab').forEach(tab => {
+            tab.addEventListener('click', () => this.showPaymentMethod(tab.dataset.method));
+        });
+        
+        // Card number formatting
+        document.getElementById('cardNumber')?.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+            let formatted = '';
+            for (let i = 0; i < value.length && i < 16; i++) {
+                if (i > 0 && i % 4 === 0) formatted += ' ';
+                formatted += value[i];
+            }
+            e.target.value = formatted;
+        });
+        
+        // Expiry date formatting
+        document.getElementById('cardExpiry')?.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+        document.getElementById('paymentModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'paymentModal') this.closePaymentModal();
+        });
+        
+        // Legacy bank transfer modal listener (for backward compatibility)
         document.getElementById('bankTransferModal')?.addEventListener('click', (e) => {
-            if (e.target.id === 'bankTransferModal') this.closeBankTransferModal();
+            if (e.target.id === 'bankTransferModal') this.closePaymentModal();
         });
         
         // Borrow Loan Modal Events
@@ -449,7 +544,13 @@ class UIController {
         // Update user info
         this.displayUserName.textContent = this.appState.user.name;
         this.userName.textContent = this.appState.user.name.split(' ')[0];
-        this.userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.appState.user.name)}&background=7c3aed&color=fff`;
+        
+        // Update avatar - use uploaded or generate from name
+        if (this.appState.user.avatar) {
+            this.userAvatar.src = this.appState.user.avatar;
+        } else {
+            this.userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.appState.user.name)}&background=7c3aed&color=fff`;
+        }
         
         // Update notification badge
         this.notificationBadge.textContent = this.appState.notifications.length;
@@ -579,18 +680,22 @@ class UIController {
         } else {
             this.profileAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.appState.user.name)}&background=5b21b6&color=fff&size=200`;
         }
-        this.profileName.textContent = this.appState.user.name;
-        this.profileEmail.textContent = this.appState.user.email || 'No email set';
-        this.profileWallet.textContent = `₦${this.appState.wallet.toLocaleString()}`;
-        this.profileSavings.textContent = `₦${this.appState.savings.toLocaleString()}`;
-        this.profileLoans.textContent = `₦${this.appState.getLoanRemaining().toLocaleString()}`;
-        this.profileTransactions.textContent = this.appState.transactions.length.toString();
+        
+        // Update profile info
+        if (this.profileName) this.profileName.textContent = this.appState.user.name;
+        if (this.profileEmail) this.profileEmail.textContent = this.appState.user.email || 'No email set';
+        
+        // Update financial amounts in profile
+        if (this.profileWallet) this.profileWallet.textContent = `₦${this.appState.wallet.toLocaleString()}`;
+        if (this.profileSavings) this.profileSavings.textContent = `₦${this.appState.savings.toLocaleString()}`;
+        if (this.profileLoans) this.profileLoans.textContent = `₦${this.appState.getLoanRemaining().toLocaleString()}`;
+        if (this.profileTransactions) this.profileTransactions.textContent = this.appState.transactions.length.toString();
         
         // Update edit form values
-        if (document.getElementById('editName')) {
-            document.getElementById('editName').value = this.appState.user.name;
-            document.getElementById('editEmail').value = this.appState.user.email || '';
-        }
+        const editNameInput = document.getElementById('editName');
+        const editEmailInput = document.getElementById('editEmail');
+        if (editNameInput) editNameInput.value = this.appState.user.name;
+        if (editEmailInput) editEmailInput.value = this.appState.user.email || '';
     }
 
     renderTransactions(container, transactions) {
@@ -773,6 +878,88 @@ class UIController {
         this.updateUI();
         this.showSuccessMessage('Settings saved successfully!');
     }
+    
+    // Avatar Upload Handler
+    handleAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+            this.showToast('warning', 'Invalid File', 'Please select an image file');
+            return;
+        }
+        
+        // Check file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            this.showToast('warning', 'File Too Large', 'Image must be less than 2MB');
+            return;
+        }
+        
+        // Read the file as Data URL
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const avatarData = e.target.result;
+            
+            // Save to app state
+            this.appState.user.avatar = avatarData;
+            this.appState.saveState();
+            
+            // Update UI
+            this.updateProfilePage();
+            this.updateUI();
+            
+            this.showToast('success', 'Photo Updated', 'Your profile photo has been updated');
+        };
+        reader.onerror = () => {
+            this.showToast('error', 'Error', 'Failed to read the image file');
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // Show Edit Profile Form
+    showEditProfileForm() {
+        // Pre-fill form with current values
+        document.getElementById('editName').value = this.appState.user.name;
+        document.getElementById('editEmail').value = this.appState.user.email || '';
+        
+        // Show form, hide header info
+        this.editProfileForm.style.display = 'block';
+        document.querySelector('.profile-info').style.display = 'none';
+        this.editProfileBtn.style.display = 'none';
+    }
+    
+    // Hide Edit Profile Form
+    hideEditProfileForm() {
+        this.editProfileForm.style.display = 'none';
+        document.querySelector('.profile-info').style.display = 'block';
+        this.editProfileBtn.style.display = 'inline-block';
+    }
+    
+    // Save Profile Changes
+    handleSaveProfile() {
+        const name = document.getElementById('editName').value.trim();
+        const email = document.getElementById('editEmail').value.trim();
+        
+        if (!name) {
+            this.showToast('warning', 'Name Required', 'Please enter your name');
+            return;
+        }
+        
+        // Update user in app state
+        this.appState.user.name = name;
+        this.appState.user.email = email;
+        this.appState.saveState();
+        
+        // Update UI
+        this.updateProfilePage();
+        this.updateUI();
+        
+        // Hide form
+        this.hideEditProfileForm();
+        
+        this.showToast('success', 'Profile Updated', 'Your profile has been updated successfully');
+    }
 
     handleLogout() {
         if (confirm('Are you sure you want to logout?')) {
@@ -781,44 +968,124 @@ class UIController {
         }
     }
 
-    // Bank Transfer Modal Methods (Unified for Payment & Savings)
-    openBankTransferModal(type) {
-        this.transferType = type;
-        const modal = document.getElementById('bankTransferModal');
-        const title = document.getElementById('bankTransferTitle');
+    // Payment Modal State
+    paymentMethod = 'bank'; // 'bank' or 'card'
+    uploadedReceiptFile = null;
+    paymentType = null; // 'payment', 'topup', 'savings'
+
+    // Unified Payment Modal Methods
+    openPaymentModal(type) {
+        this.paymentType = type;
+        this.paymentMethod = 'bank';
+        this.uploadedReceiptFile = null;
+        
+        const modal = document.getElementById('paymentModal');
+        const title = document.getElementById('paymentModalTitle');
         const amountLabel = document.getElementById('amountFormLabel');
-        const amountInput = document.getElementById('transferAmountInput');
-        const instruction = document.getElementById('transferInstruction');
+        const amountInput = document.getElementById('paymentAmountInput');
+        const confirmBtn = document.getElementById('confirmPaymentBtn');
+        
+        // Reset form
+        this.resetPaymentForm();
+        
+        // Show bank transfer section by default
+        this.showPaymentMethod('bank');
         
         if (type === 'payment') {
-            title.textContent = 'Complete Your Payment';
+            title.textContent = 'Loan Repayment';
             amountLabel.textContent = 'Enter Payment Amount';
             amountInput.placeholder = `Remaining: ₦${this.appState.getLoanRemaining().toLocaleString()}`;
-            amountInput.value = '';
-            amountInput.disabled = false;
-            instruction.textContent = 'Enter the amount you want to pay, then transfer to the account above.';
+            confirmBtn.textContent = 'I Have Made Payment';
         } else if (type === 'topup') {
             title.textContent = 'Top Up Wallet';
             amountLabel.textContent = 'Enter Amount';
             amountInput.placeholder = 'Enter amount to top up';
-            amountInput.value = '';
-            amountInput.disabled = false;
-            instruction.textContent = 'Transfer to the account above to top up your wallet.';
+            confirmBtn.textContent = 'I Have Made Payment';
         } else {
             title.textContent = 'Add Savings';
             amountLabel.textContent = 'Enter Amount You Want to Save';
             amountInput.placeholder = 'Enter amount';
-            amountInput.value = '';
-            amountInput.disabled = false;
-            instruction.textContent = 'Transfer this amount to the account above, then confirm below.';
+            confirmBtn.textContent = 'I Have Made Payment';
         }
         
         modal.classList.add('active');
     }
 
-    closeBankTransferModal() {
-        const modal = document.getElementById('bankTransferModal');
+    resetPaymentForm() {
+        document.getElementById('paymentAmountInput').value = '';
+        document.getElementById('receiptUpload').value = '';
+        document.getElementById('uploadedReceipt').style.display = 'none';
+        document.getElementById('paymentError').style.display = 'none';
+        this.uploadedReceiptFile = null;
+        
+        // Reset card form
+        document.getElementById('cardNumber').value = '';
+        document.getElementById('cardExpiry').value = '';
+        document.getElementById('cardCvv').value = '';
+        document.getElementById('cardHolderName').value = '';
+    }
+
+    showPaymentMethod(method) {
+        this.paymentMethod = method;
+        const bankSection = document.getElementById('bankTransferSection');
+        const cardSection = document.getElementById('cardPaymentSection');
+        const confirmBtn = document.getElementById('confirmPaymentBtn');
+        const tabs = document.querySelectorAll('.payment-method-tab');
+        
+        tabs.forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.method === method);
+        });
+        
+        if (method === 'bank') {
+            bankSection.style.display = 'block';
+            cardSection.style.display = 'none';
+            confirmBtn.textContent = 'I Have Made Payment';
+        } else {
+            bankSection.style.display = 'none';
+            cardSection.style.display = 'block';
+            confirmBtn.textContent = 'Pay Now';
+        }
+    }
+
+    handleReceiptUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                this.showPaymentError('Please upload a valid image file (JPG or PNG)');
+                return;
+            }
+            
+            // Store file as base64 for admin to view
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                // Store the base64 image data
+                this.uploadedReceiptFile = e.target.result; // Full base64 data
+                
+                // Show uploaded receipt
+                document.getElementById('uploadedReceipt').style.display = 'flex';
+                document.getElementById('receiptFileName').textContent = file.name;
+                this.hidePaymentError();
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    showPaymentError(message) {
+        const errorDiv = document.getElementById('paymentError');
+        document.getElementById('paymentErrorText').textContent = message;
+        errorDiv.style.display = 'flex';
+    }
+
+    hidePaymentError() {
+        document.getElementById('paymentError').style.display = 'none';
+    }
+
+    closePaymentModal() {
+        const modal = document.getElementById('paymentModal');
         modal.classList.remove('active');
+        this.resetPaymentForm();
     }
 
     copyAccountNumber() {
@@ -828,30 +1095,176 @@ class UIController {
         });
     }
 
-    handleTransferConfirmation() {
-        const amount = parseInt(document.getElementById('transferAmountInput').value);
+    validatePayment() {
+        const amount = parseInt(document.getElementById('paymentAmountInput').value);
         
+        // Validate amount
         if (!amount || amount < 100) {
-            this.showToast('warning', 'Invalid Amount', 'Please enter a valid amount (minimum ₦100)');
+            this.showPaymentError('Please enter a valid amount (minimum ₦100)');
+            return false;
+        }
+        
+        // Validate based on payment method
+        if (this.paymentMethod === 'bank') {
+            // For bank transfer, require receipt - check if it's actually loaded
+            if (!this.uploadedReceiptFile) {
+                this.showPaymentError('Please upload your payment receipt before confirming');
+                return false;
+            }
+            
+            // Validate receipt is base64 (not just a filename)
+            if (this.uploadedReceiptFile && this.uploadedReceiptFile.length < 100) {
+                this.showPaymentError('Please wait for receipt to upload or try again');
+                return false;
+            }
+        } else {
+            // For card payment, validate card fields
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            const cardExpiry = document.getElementById('cardExpiry').value;
+            const cardCvv = document.getElementById('cardCvv').value;
+            const cardHolder = document.getElementById('cardHolderName').value;
+            
+            if (!cardNumber || cardNumber.length < 13) {
+                this.showPaymentError('Please enter a valid card number');
+                return false;
+            }
+            if (!cardExpiry || cardExpiry.length < 5) {
+                this.showPaymentError('Please enter a valid expiry date (MM/YY)');
+                return false;
+            }
+            if (!cardCvv || cardCvv.length < 3) {
+                this.showPaymentError('Please enter a valid CVV');
+                return false;
+            }
+            if (!cardHolder.trim()) {
+                this.showPaymentError('Please enter the cardholder name');
+                return false;
+            }
+        }
+        
+        // For loan payment, check remaining loan balance
+        if (this.paymentType === 'payment') {
+            const remainingLoan = this.appState.getLoanRemaining();
+            if (amount > remainingLoan) {
+                this.showPaymentError(`You cannot pay more than your remaining loan balance (₦${remainingLoan.toLocaleString()})`);
+                return false;
+            }
+            // For card payment, no wallet check needed; for bank, check wallet
+            if (this.paymentMethod === 'bank' && this.appState.wallet < amount) {
+                this.showPaymentError('Your wallet balance is low. Please top up or use card payment.');
+                return false;
+            }
+        }
+        
+        // For savings with bank transfer, check wallet
+        if (this.paymentType === 'savings' && this.paymentMethod === 'bank') {
+            if (this.appState.wallet < amount) {
+                this.showPaymentError('Your wallet balance is low. Please top up or use card payment.');
+                return false;
+            }
+        }
+        
+        this.hidePaymentError();
+        return true;
+    }
+
+    handlePaymentConfirmation() {
+        if (!this.validatePayment()) {
             return;
         }
         
-        // For payment, check remaining loan balance and wallet
-        if (this.transferType === 'payment') {
-            const remainingLoan = this.appState.getLoanRemaining();
-            if (amount > remainingLoan) {
-                this.showToast('warning', 'Amount Too High', `You cannot pay more than your remaining loan balance (₦${remainingLoan.toLocaleString()})`);
-                return;
-            }
-            if (this.appState.wallet < amount) {
-                this.showToast('error', 'Insufficient Balance', 'Your wallet balance is low. Please top up to make payment.');
-                return;
-            }
-        }
-
-        // Close modal
-        this.closeBankTransferModal();
+        // Ensure whole naira amount (no decimals/kobo)
+        const amount = Math.floor(parseFloat(document.getElementById('paymentAmountInput').value));
         
+        // Close modal
+        this.closePaymentModal();
+        
+        if (this.paymentMethod === 'card') {
+            this.processCardPayment(amount);
+        } else {
+            this.processBankTransfer(amount);
+        }
+    }
+
+    processCardPayment(amount) {
+        // Show processing overlay
+        const overlay = document.getElementById('processingOverlay');
+        const text = document.getElementById('processingText');
+        
+        overlay.classList.add('active');
+        text.innerHTML = 'Processing card payment<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+        
+        // Simulate card payment processing
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            
+            // Process based on payment type
+            if (this.paymentType === 'payment') {
+                this.appState.loan.paid += amount;
+                const transaction = {
+                    id: Date.now(),
+                    type: 'payment',
+                    amount: -amount,
+                    date: new Date().toISOString().split('T')[0],
+                    description: 'Loan Payment (Card)',
+                    method: 'card',
+                    status: 'successful',
+                    receipt: null
+                };
+                this.appState.transactions.unshift(transaction);
+                this.appState.addNotification('success', 'Payment Successful', `₦${amount.toLocaleString()} paid via card`);
+                
+                // Check if loan is fully repaid
+                if (this.appState.loan.paid >= this.appState.loan.amount) {
+                    const successOverlay = document.getElementById('loanSuccessOverlay');
+                    successOverlay.classList.add('active');
+                    
+                    setTimeout(() => {
+                        successOverlay.classList.remove('active');
+                        this.appState.loan = { amount: 0, paid: 0 };
+                        this.appState.saveState();
+                        this.updateUI();
+                        this.showToast('success', 'Loan Completed', 'You can now borrow a new loan!');
+                    }, 2500);
+                    return;
+                }
+            } else if (this.paymentType === 'topup') {
+                this.appState.wallet += amount;
+                const transaction = {
+                    id: Date.now(),
+                    type: 'topup',
+                    amount: amount,
+                    date: new Date().toISOString().split('T')[0],
+                    description: 'Wallet Top Up (Card)',
+                    method: 'card',
+                    status: 'successful',
+                    receipt: null
+                };
+                this.appState.transactions.unshift(transaction);
+                this.appState.addNotification('success', 'Top Up Successful', `₦${amount.toLocaleString()} added to your wallet`);
+            } else if (this.paymentType === 'savings') {
+                this.appState.savings += amount;
+                const transaction = {
+                    id: Date.now(),
+                    type: 'savings',
+                    amount: amount,
+                    date: new Date().toISOString().split('T')[0],
+                    description: 'Savings Deposit (Card)',
+                    method: 'card',
+                    status: 'successful',
+                    receipt: null
+                };
+                this.appState.transactions.unshift(transaction);
+                this.appState.addNotification('success', 'Savings Successful', `₦${amount.toLocaleString()} added to your savings`);
+            }
+
+            this.appState.saveState();
+            this.updateUI();
+            this.showToast('success', 'Payment Successful', 'Your transaction has been completed.');
+        }, 3000);
+    }
+
+    processBankTransfer(amount) {
         // Show processing overlay
         const overlay = document.getElementById('processingOverlay');
         const text = document.getElementById('processingText');
@@ -861,180 +1274,102 @@ class UIController {
         // Phase 1: Processing
         setTimeout(() => {
             const dots = '<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
-            text.innerHTML = (this.transferType === 'payment' ? 'Confirming your payment' : 'Confirming your deposit') + dots;
-        }, 3000);
+            text.innerHTML = 'Submitting your request' + dots;
+        }, 2000);
         
-        // Phase 2: Complete
+        // Phase 2: Complete - Create admin request (NOT updating balances yet)
         setTimeout(() => {
             overlay.classList.remove('active');
             
-            if (this.transferType === 'payment') {
-                // Deduct from wallet
-                this.appState.wallet -= amount;
-                
-                // Handle payment
-                const transaction = {
-                    id: Date.now(),
-                    type: 'payment',
-                    amount: -amount,
-                    date: new Date().toISOString().split('T')[0],
-                    description: 'Loan Payment',
-                    status: 'successful'
-                };
-                
-                this.appState.transactions.unshift(transaction);
-                this.appState.addNotification('warning', 'Payment Under Review', 'Your payment is pending verification');
-                this.appState.loan.paid += amount;
-                
-                // Check if loan is fully repaid and handle completion
-                if (this.appState.loan.paid >= this.appState.loan.amount) {
-                    // Show the success overlay first
-                    const successOverlay = document.getElementById('loanSuccessOverlay');
-                    successOverlay.classList.add('active');
-                    
-                    // After 2.5 seconds, hide overlay and clear loan/notifications
-                    setTimeout(() => {
-                        successOverlay.classList.remove('active');
-                        
-                        // Clear the loan data
-                        this.appState.loan = { amount: 0, paid: 0 };
-                        
-                        this.appState.saveState();
-                        this.updateUI();
-                        
-                        this.showToast('success', 'Loan Completed', 'You can now borrow a new loan!');
-                    }, 2500);
-                    
-                    return; // Exit early to avoid duplicate updateUI
-                }
-            } else if (this.transferType === 'topup') {
-                // Handle topup - add to wallet
-                this.appState.wallet += amount;
-                
-                const transaction = {
-                    id: Date.now(),
-                    type: 'topup',
-                    amount: amount,
-                    date: new Date().toISOString().split('T')[0],
-                    description: 'Wallet Top Up',
-                    status: 'successful'
-                };
-                
-                this.appState.transactions.unshift(transaction);
-                this.appState.addNotification('success', 'Top Up Successful', `₦${amount.toLocaleString()} added to your wallet`);
-            } else if (this.transferType === 'savings') {
-                // Check wallet balance for savings
-                if (this.appState.wallet < amount) {
-                    this.showToast('error', 'Insufficient Balance', 'Your wallet balance is low. Please top up to save.');
-                    return;
-                }
-                
-                // Deduct from wallet
-                this.appState.wallet -= amount;
-                
-                // Handle savings
-                const transaction = {
-                    id: Date.now(),
-                    type: 'savings',
-                    amount: amount,
-                    date: new Date().toISOString().split('T')[0],
-                    description: 'Savings Deposit',
-                    status: 'successful'
-                };
-                
-                this.appState.transactions.unshift(transaction);
-                this.appState.addNotification('warning', 'Savings Under Review', 'Your deposit is pending verification');
-                this.appState.savings += amount;
-            }
+            // Get user name for admin request
+            const userName = this.appState.user?.name || 'User';
+            const userEmail = this.appState.user?.email || '';
+            const requestId = Date.now();
+            const typeLabel = this.paymentType === 'payment' ? 'Loan Repayment' : (this.paymentType === 'topup' ? 'Top-up' : 'Savings');
+            
+            // Save admin request (for approval later) - ensure whole naira amount
+            const adminRequest = {
+                id: requestId,
+                userName: userName,
+                userEmail: userEmail,
+                type: typeLabel,
+                amount: Math.floor(amount),
+                method: 'Bank Transfer',
+                status: 'Pending',
+                receipt: this.uploadedReceiptFile,
+                date: new Date().toISOString()
+            };
+            
+            const adminRequests = JSON.parse(localStorage.getItem('adminRequests') || '[]');
+            adminRequests.push(adminRequest);
+            localStorage.setItem('adminRequests', JSON.stringify(adminRequests));
+            
+            // Create transaction record showing pending
+            const transactionDesc = typeLabel;
+            // Ensure amount is a whole number (no decimals/kobo)
+            const wholeAmount = Math.floor(amount);
+            const transactionAmount = this.paymentType === 'payment' ? -wholeAmount : wholeAmount;
+            
+            const transaction = {
+                id: requestId,
+                type: this.paymentType,
+                amount: transactionAmount,
+                date: new Date().toISOString().split('T')[0],
+                description: transactionDesc,
+                method: 'Bank Transfer',
+                status: 'Pending',
+                receipt: this.uploadedReceiptFile
+            };
+            
+            this.appState.transactions.unshift(transaction);
+            
+            // Add notification
+            this.appState.addNotification('warning', 'Request Submitted', `Your ${typeLabel.toLowerCase()} request is pending admin approval`);
 
             this.appState.saveState();
             this.updateUI();
             
-            this.showToast('info', 'Processing Complete', 'Your money will reflect in your account within a few minutes.');
-        }, 6000);
+            this.showToast('info', 'Request Submitted', 'Your request is pending admin approval');
+        }, 4000);
     }
 
-    // Simple Payment Modal Methods
+    // Legacy methods for backward compatibility
+    openBankTransferModal(type) {
+        this.openPaymentModal(type);
+    }
+
+    closeBankTransferModal() {
+        this.closePaymentModal();
+    }
+
+    handleTransferConfirmation() {
+        this.handlePaymentConfirmation();
+    }
+
+    // Simple Payment Modal Methods - Redirect to unified payment modal
     openSimplePaymentModal() {
-        const modal = document.getElementById('simplePaymentModal');
-        modal.classList.add('active');
-        
-        // Show loan balance info
-        document.getElementById('modalLoanBalance').textContent = `₦${this.appState.getLoanRemaining().toLocaleString()}`;
-        document.getElementById('modalLoanPaid').textContent = `₦${this.appState.loan.paid.toLocaleString()}`;
-        
-        document.getElementById('simplePaymentAmount').value = '';
+        this.openPaymentModal('payment');
     }
     
     closeSimplePaymentModal() {
-        const modal = document.getElementById('simplePaymentModal');
-        modal.classList.remove('active');
+        document.getElementById('simplePaymentModal').classList.remove('active');
     }
     
     handleSimplePayment() {
-        const amount = parseInt(document.getElementById('simplePaymentAmount').value);
-        
-        if (!amount || amount < 100) {
-            this.showToast('warning', 'Invalid Amount', 'Please enter a valid amount (minimum ₦100)');
-            return;
-        }
-        
-        if (amount > this.appState.getLoanRemaining()) {
-            this.showToast('warning', 'Amount Too High', 'Payment cannot exceed remaining balance');
-            return;
-        }
-        
-        // Check if user has sufficient balance
-        if (this.appState.wallet < amount) {
-            this.showToast('error', 'Insufficient Balance', 'Please top up your wallet to make this payment');
-            return;
-        }
-        
-        // Show confirmation modal
-        this.pendingAction = {
-            type: 'loanPayment',
-            amount: amount
-        };
-        this.openConfirmModal(
-            'Confirm Loan Repayment',
-            `Are you sure you want to repay ₦${amount.toLocaleString()} from your wallet?`,
-            `₦${amount.toLocaleString()}`
-        );
-        this.closeSimplePaymentModal();
+        this.openPaymentModal('payment');
     }
-    
-    // Top Up Methods
+
+    // Top Up Methods - Redirect to unified payment modal
     openTopUpModal() {
-        const modal = document.getElementById('topUpModal');
-        modal.classList.add('active');
-        document.getElementById('currentWalletBalance').textContent = `₦${this.appState.wallet.toLocaleString()}`;
-        document.getElementById('topUpAmount').value = '';
+        this.openPaymentModal('topup');
     }
     
     closeTopUpModal() {
-        const modal = document.getElementById('topUpModal');
-        modal.classList.remove('active');
+        document.getElementById('topUpModal').classList.remove('active');
     }
     
     handleTopUp() {
-        const amount = parseInt(document.getElementById('topUpAmount').value);
-        
-        if (!amount || amount < 100) {
-            this.showToast('warning', 'Invalid Amount', 'Please enter a valid amount (minimum ₦100)');
-            return;
-        }
-        
-        // Show confirmation
-        this.pendingAction = {
-            type: 'topUp',
-            amount: amount
-        };
-        this.openConfirmModal(
-            'Confirm Top Up',
-            `Are you sure you want to top up ₦${amount.toLocaleString()} to your wallet?`,
-            `₦${amount.toLocaleString()}`
-        );
-        this.closeTopUpModal();
+        this.openPaymentModal('topup');
     }
     
     // Confirmation Modal Methods

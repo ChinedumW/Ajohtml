@@ -37,6 +37,7 @@
             <div class="profile-dropdown" id="profileDropdown">
                 <a href="#" data-page="profile"><i class="fas fa-user"></i> My Profile</a>
                 <a href="#" data-page="settings"><i class="fas fa-cog"></i> Settings</a>
+                <a href="admin.html" target="_blank"><i class="fas fa-shield-alt"></i> Admin Panel</a>
                 <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
@@ -411,47 +412,108 @@
         </div>
     </div>
 
-    <!-- Bank Transfer Modal (Shared for Payment & Savings) -->
-    <div class="modal" id="bankTransferModal">
+    <!-- Unified Payment Modal with Method Selection -->
+    <div class="modal" id="paymentModal">
         <div class="modal-content payment-modal-content">
             <div class="modal-header">
-                <h3 id="bankTransferTitle">Bank Transfer</h3>
-                <button class="modal-close" id="bankTransferModalClose">&times;</button>
+                <h3 id="paymentModalTitle">Payment</h3>
+                <button class="modal-close" id="paymentModalClose">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="bank-details">
-                    <h4>Bank Transfer Details</h4>
-                    <div class="bank-info">
-                        <div class="info-row">
-                            <span class="info-label">Bank Name</span>
-                            <span class="info-value">Opay / PalmPay / Access Bank</span>
+                <!-- Payment Method Selection -->
+                <div class="payment-method-section">
+                    <h4>Choose Payment Method</h4>
+                    <div class="payment-method-tabs">
+                        <button class="payment-method-tab active" data-method="bank">
+                            <i class="fas fa-university"></i> Bank Transfer
+                        </button>
+                        <button class="payment-method-tab" data-method="card">
+                            <i class="fas fa-credit-card"></i> Pay with Card
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Amount Input (Common for both methods) -->
+                <div class="form-group" id="amountFormGroup">
+                    <label id="amountFormLabel">Enter Amount</label>
+                    <input type="number" id="paymentAmountInput" placeholder="Enter amount" min="100">
+                </div>
+
+                <!-- Bank Transfer Section -->
+                <div class="payment-section" id="bankTransferSection">
+                    <div class="bank-details">
+                        <h4>Bank Transfer Details</h4>
+                        <div class="bank-info">
+                            <div class="info-row">
+                                <span class="info-label">Bank Name</span>
+                                <span class="info-value">Opay / PalmPay / Access Bank</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Account Name</span>
+                                <span class="info-value">Treasure Fortune Co-op</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Account Number</span>
+                                <span class="info-value account-number">1234567890</span>
+                                <button class="copy-btn" id="copyAccountBtn">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
                         </div>
-                        <div class="info-row">
-                            <span class="info-label">Account Name</span>
-                            <span class="info-value">Treasure Fortune Co-op</span>
+                    </div>
+                    <p class="instruction-text" id="transferInstruction">
+                        Transfer the amount to the account above and upload your payment receipt below.
+                    </p>
+                    <!-- Receipt Upload -->
+                    <div class="receipt-upload-section">
+                        <label>Upload Payment Receipt</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="receiptUpload" accept="image/jpeg,image/png,image/jpg">
+                            <div class="file-upload-area">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Click to upload receipt (JPG, PNG)</span>
+                            </div>
                         </div>
-                        <div class="info-row">
-                            <span class="info-label">Account Number</span>
-                            <span class="info-value account-number">1234567890</span>
-                            <button class="copy-btn" id="copyAccountBtn">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
+                        <div class="uploaded-receipt" id="uploadedReceipt" style="display: none;">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="receiptFileName"></span>
                         </div>
                     </div>
                 </div>
-                
-                <div class="form-group" id="amountFormGroup">
-                    <label id="amountFormLabel">Enter Amount</label>
-                    <input type="number" id="transferAmountInput" placeholder="Enter amount" min="100">
+
+                <!-- Card Payment Section -->
+                <div class="payment-section" id="cardPaymentSection" style="display: none;">
+                    <div class="card-payment-form">
+                        <div class="form-group">
+                            <label>Card Number</label>
+                            <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Expiry Date</label>
+                                <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+                            </div>
+                            <div class="form-group">
+                                <label>CVV</label>
+                                <input type="text" id="cardCvv" placeholder="123" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Cardholder Name</label>
+                            <input type="text" id="cardHolderName" placeholder="John Doe">
+                        </div>
+                    </div>
                 </div>
-                
-                <p class="instruction-text" id="transferInstruction">
-                    Transfer this amount to the account above, then confirm below.
-                </p>
+
+                <!-- Error Message -->
+                <div class="payment-error" id="paymentError" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="paymentErrorText"></span>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline" id="bankTransferCancel">Cancel</button>
-                <button class="btn btn-primary" id="confirmTransferBtn">I Have Made Payment</button>
+                <button class="btn btn-outline" id="paymentCancel">Cancel</button>
+                <button class="btn btn-primary" id="confirmPaymentBtn">I Have Made Payment</button>
             </div>
         </div>
     </div>
