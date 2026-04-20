@@ -1162,11 +1162,30 @@
             const approveBtn = document.getElementById('approveBtn');
             const rejectBtn = document.getElementById('rejectBtn');
             
-            // Check if receipt exists and is valid base64
-            const hasReceipt = request.receipt && request.receipt.length > 100 && (
-                request.receipt.startsWith('data:image') || 
-                (request.receipt.length > 500)
-            );
+            // Check for receipt data - be very lenient
+            let receiptData = request.receipt || '';
+            let hasReceipt = false;
+            let imgSrc = '';
+            
+            // Check if we have any receipt data at all (even short ones)
+            if (receiptData && receiptData.length > 20) {
+                hasReceipt = true;
+                // Clean up the data - remove any whitespace
+                receiptData = receiptData.trim();
+                
+                // Determine the image source
+                if (receiptData.startsWith('data:')) {
+                    // Already has data URL prefix
+                    imgSrc = receiptData;
+                } else if (receiptData.startsWith('/') || receiptData.startsWith('http')) {
+                    // URL to image
+                    imgSrc = receiptData;
+                } else {
+                    // Assume it's base64 - try to detect format
+                    // Check if it might be PNG or JPEG
+                    imgSrc = 'data:image/jpeg;base64,' + receiptData;
+                }
+            }
             
             // Show/hide buttons based on status
             const isPending = request.status === 'Pending';
@@ -1186,19 +1205,28 @@
                 }
             }
             
-            // Display receipt image
-            if (hasReceipt) {
-                let imgSrc = request.receipt;
-                if (!imgSrc.startsWith('data:image')) {
-                    imgSrc = 'data:image/jpeg;base64,' + request.receipt;
-                }
-                preview.innerHTML = `<img src="${imgSrc}" alt="Receipt Image" style="width:100%;max-height:400px;object-fit:contain;border-radius:8px;">`;
+            // Try to display the receipt image
+            if (hasReceipt && imgSrc) {
+                preview.innerHTML = `
+                    <div style="text-align:center;padding:10px;">
+                        <img id="receiptImg" src="${imgSrc}" alt="Receipt Image" 
+                            style="max-width:100%;max-height:350px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);"
+                            onload="console.log('Image loaded successfully')"
+                            onerror="console.log('Image failed to load'); this.style.display='none'; document.getElementById('receiptError').style.display='block';">
+                        <div id="receiptError" style="display:none;padding:20px;text-align:center;background:#fee2e2;border-radius:8px;margin-top:10px;">
+                            <i class="fas fa-exclamation-triangle" style="font-size:32px;color:#dc2626;"></i>
+                            <p style="color:#991b1b;margin-top:8px;">Could not load receipt image</p>
+                            <p style="color:#991b1b;font-size:12px;">Receipt data length: ${receiptData.length}</p>
+                        </div>
+                    </div>
+                `;
             } else {
                 preview.innerHTML = `
-                    <div class="receipt-placeholder">
-                        <i class="fas fa-file-image" style="font-size:64px;"></i>
-                        <p style="font-size:16px;font-weight:600;">No Receipt Image</p>
-                        <p style="font-size:13px;">User hasn't uploaded proof of payment yet</p>
+                    <div class="receipt-placeholder" style="padding:40px;">
+                        <i class="fas fa-file-image" style="font-size:64px;color:#d1d5db;"></i>
+                        <p style="font-size:16px;font-weight:600;margin-top:12px;">No Receipt Image</p>
+                        <p style="font-size:13px;color:#6b7280;">User hasn't uploaded proof of payment yet</p>
+                        <p style="font-size:11px;color:#9ca3af;margin-top:8px;">Receipt: ${request.receipt ? 'exists but too short' : 'not uploaded'}</p>
                     </div>
                 `;
             }
