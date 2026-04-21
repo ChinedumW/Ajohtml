@@ -1,4 +1,65 @@
 /* ===========================
+   Payment Warning Banner
+   =========================== */
+.payment-warning {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 12px 20px;
+    z-index: 1001;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.warning-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.warning-content i {
+    font-size: 24px;
+}
+
+.warning-content h3 {
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.warning-content p {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.btn-warning {
+    background: white;
+    color: #f59e0b;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.btn-warning:hover {
+    background: #f3f4f6;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .warning-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+}
+
+/* ===========================
    CSS Variables & Reset
    =========================== */
 :root {

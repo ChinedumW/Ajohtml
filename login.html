@@ -6,18 +6,204 @@
     <title>Login - Treasure Fortune</title>
     <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #5b21b6, #4c1d95);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #f97316, #fb923c);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .logo span {
+            font-size: 28px;
+            font-weight: 800;
+            color: #5b21b6;
+        }
+
+        .auth-header h1 {
+            font-size: 28px;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .auth-header p {
+            color: #6b7280;
+            font-size: 15px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 14px 14px 14px 45px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #5b21b6;
+            box-shadow: 0 0 0 4px rgba(91, 33, 182, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #5b21b6, #4c1d95);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(91, 33, 182, 0.3);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .auth-footer p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .auth-footer a {
+            color: #5b21b6;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .back-home {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-home a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-home a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.error {
+            background: #fee2e2;
+            color: #dc2626;
+            display: block;
+        }
+
+        .alert.info {
+            background: #dbeafe;
+            color: #2563eb;
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
                 <div class="logo">
-                    <i class="fas fa-gem"></i>
+                    <div class="logo-icon">☪</div>
                     <span>Treasure Fortune</span>
                 </div>
                 <h1>Welcome Back</h1>
                 <p>Login to access your account</p>
             </div>
+
+            <div id="alert" class="alert"></div>
 
             <form id="loginForm" class="auth-form">
                 <div class="form-group">
@@ -45,8 +231,73 @@
                 <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
             </div>
         </div>
+
+        <div class="back-home">
+            <a href="homepage.html"><i class="fas fa-home"></i> Back to Home</a>
+        </div>
     </div>
 
-    <script src="js/auth.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const alertBox = document.getElementById('alert');
+
+            // Validation
+            if (!email || !password) {
+                alertBox.textContent = 'Please fill in all fields';
+                alertBox.className = 'alert error';
+                return;
+            }
+
+            // Get users from localStorage
+            const users = JSON.parse(localStorage.getItem('treasureFortuneUsers') || '[]');
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                // Save current user
+                localStorage.setItem('treasureFortuneCurrentUser', JSON.stringify(user));
+                localStorage.setItem('treasureFortuneLoggedIn', 'true');
+
+                // Check if user has paid registration fee
+                if (!user.hasPaidRegistration) {
+                    // Redirect to payment page
+                    alertBox.textContent = 'You need to complete your registration payment first.';
+                    alertBox.className = 'alert info';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'pay.html';
+                    }, 1500);
+                } else {
+                    // User has paid, redirect to dashboard
+                    // Initialize user state if not exists
+                    if (!localStorage.getItem('treasureFortuneState')) {
+                        const initialState = {
+                            user: { name: user.name, email: user.email, avatar: null },
+                            wallet: 50000,
+                            savings: 0,
+                            loan: { amount: 0, paid: 0 },
+                            transactions: [],
+                            notifications: [{
+                                id: Date.now(),
+                                type: 'success',
+                                title: 'Welcome!',
+                                message: 'Your account is fully active',
+                                time: 'Just now'
+                            }]
+                        };
+                        localStorage.setItem('treasureFortuneState', JSON.stringify(initialState));
+                    }
+
+                    window.location.href = 'dashboard.html';
+                }
+            } else {
+                alertBox.textContent = 'Invalid email or password';
+                alertBox.className = 'alert error';
+            }
+        });
+    </script>
 </body>
 </html>

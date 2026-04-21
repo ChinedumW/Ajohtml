@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Treasure Fortune - Complete Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --purple: #5b21b6;
+            --purple2: #4c1d95;
+            --orange: #f97316;
+            --orange2: #fb923c;
+            --dark: #111827;
+            --gray: #6b7280;
+            --light: #f8fafc;
+            --white: #fff;
+            --line: #e5e7eb;
+            --success: #16a34a
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, var(--purple), var(--purple2));
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center
+        }
+
+        a {
+            text-decoration: none
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 580px;
+            position: relative
+        }
+        .card {
+            background: #fff;
+            border-radius: 28px;
+            padding: 32px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, .2)
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 18px
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fde047, #f59e0b);
+            display: grid;
+            place-items: center;
+            font-size: 22px
+        }
+
+        .logo-text {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--purple)
+        }
+
+        .head {
+            text-align: center;
+            margin-bottom: 24px
+        }
+
+        .head h1 {
+            font-size: 30px;
+            color: var(--dark);
+            margin-bottom: 8px
+        }
+
+        .head p {
+            color: var(--gray)
+        }
+
+        .amount {
+            background: linear-gradient(135deg, var(--purple), var(--purple2));
+            color: #fff;
+            border-radius: 24px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px
+        }
+
+        .amount small {
+            opacity: .85;
+            letter-spacing: .08em;
+            text-transform: uppercase
+        }
+
+        .amount h2 {
+            font-size: 42px;
+            margin: 8px 0
+        }
+
+        .amount p {
+            opacity: .8;
+            font-size: 14px
+        }
+
+        .label {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px
+        }
+
+        .methods {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 20px
+        }
+
+        .method {
+            border: 2px solid var(--line);
+            padding: 16px;
+            border-radius: 18px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            cursor: pointer;
+            transition: .25s
+        }
+
+        .method:hover {
+            transform: translateY(-2px);
+            border-color: #8b5cf6
+        }
+
+        .method.active {
+            border-color: var(--purple);
+            background: #f5f3ff
+        }
+
+        .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            background: var(--light);
+            display: grid;
+            place-items: center;
+            font-size: 22px
+        }
+
+        .grow {
+            flex: 1
+        }
+
+        .grow h4 {
+            font-size: 15px;
+            color: var(--dark)
+        }
+
+        .grow p {
+            font-size: 13px;
+            color: var(--gray)
+        }
+
+        .check {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--line);
+            display: grid;
+            place-items: center;
+            font-size: 12px
+        }
+
+        .method.active .check {
+            background: var(--purple);
+            border-color: var(--purple);
+            color: #fff
+        }
+
+        .form {
+            display: none
+        }
+
+        .form.active {
+            display: block;
+            animation: fade .3s ease
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .group {
+            margin-bottom: 14px
+        }
+
+        .group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px
+        }
+
+        .input {
+            width: 100%;
+            height: 54px;
+            padding: 0 16px;
+            border: 2px solid var(--line);
+            border-radius: 16px;
+            font-size: 15px;
+            outline: none
+        }
+
+        .input:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 4px rgba(91, 33, 182, .08)
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+
+        .bank {
+            background: var(--light);
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 14px
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .item:last-child {
+            border-bottom: none;
+            padding-bottom: 0
+        }
+
+        .item span:first-child {
+            color: var(--gray);
+            font-size: 14px
+        }
+
+        .mono {
+            font-family: monospace;
+            font-weight: 800
+        }
+
+        .copy {
+            background: var(--purple);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 12px;
+            cursor: pointer
+        }
+
+        .upload {
+            border: 2px dashed #cbd5e1;
+            border-radius: 18px;
+            padding: 22px;
+            text-align: center;
+            cursor: pointer;
+            transition: .25s
+        }
+
+        .upload:hover,
+        .upload.has {
+            border-color: var(--purple);
+            background: #faf5ff
+        }
+
+        .upload input {
+            display: none
+        }
+
+        .upload b {
+            color: var(--purple)
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px
+        }
+
+        .btn {
+            height: 54px;
+            border: none;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            flex: 1
+        }
+
+        .ghost {
+            background: #f3f4f6
+        }
+
+        .primary {
+            background: linear-gradient(135deg, var(--orange2), var(--orange));
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(249, 115, 22, .25)
+        }
+
+        .primary:hover {
+            transform: translateY(-2px)
+        }
+
+        .success {
+            display: none;
+            text-align: center;
+            padding: 20px 0
+        }
+
+        .success.show {
+            display: block
+        }
+
+        .tick {
+            width: 82px;
+            height: 82px;
+            border-radius: 50%;
+            background: var(--success);
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: 34px;
+            margin: 0 auto 16px
+        }
+
+        .badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            margin: 12px 0 18px
+        }
+
+        .user-info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .user-info p {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        .user-info strong {
+            color: var(--dark);
+            font-size: 16px;
+        }
+
+        @media(max-width:600px) {
+            body {
+                padding: 12px;
+                align-items: flex-start
+            }
+
+            .wrapper {
+                max-width: 100%
+            }
+
+            .back-btn {
+                position: static;
+                display: inline-block;
+                margin-bottom: 12px
+            }
+
+            .card {
+                padding: 18px;
+                border-radius: 22px
+            }
+
+            .head h1 {
+                font-size: 24px
+            }
+
+            .amount h2 {
+                font-size: 34px
+            }
+
+            .row,
+            .actions {
+                grid-template-columns: 1fr;
+                display: grid
+            }
+
+            .actions .btn {
+                width: 100%
+            }
+        }
+    </style>
+</head>
+
+<body>
+    
+    <div class="wrapper">
+        <div class="card">
+            <div id="mainBox">
+                <div class="head">
+                    <div class="logo">
+                        <div class="logo-icon">☪</div>
+                        <div class="logo-text">Treasure Fortune</div>
+                    </div>
+                    <h1>Complete Registration</h1>
+                    <p>Pay registration fee to activate your account</p>
+                </div>
+
+                <div class="user-info" id="userInfo">
+                    <p>Registering as:</p>
+                    <strong id="userName">Loading...</strong>
+                </div>
+
+                <div class="amount"><small>Registration Fee</small>
+                    <h2>₦5,000</h2>
+                    <p>One-time payment • Lifetime access</p>
+                </div>
+                <div class="label">Select Payment Method</div>
+                <div class="methods">
+                    <div class="method active" onclick="pick(this,'card')">
+                        <div class="icon">💳</div>
+                        <div class="grow">
+                            <h4>Card Payment</h4>
+                            <p>Pay with debit or credit card - Instant approval</p>
+                        </div>
+                        <div class="check">✓</div>
+                    </div>
+                    <div class="method" onclick="pick(this,'bank')">
+                        <div class="icon">🏦</div>
+                        <div class="grow">
+                            <h4>Bank Transfer</h4>
+                            <p>Transfer and upload receipt - Pending approval</p>
+                        </div>
+                        <div class="check"></div>
+                    </div>
+                </div>
+                <div class="form active" id="cardForm">
+                    <div class="group"><label>Card Number</label><input class="input" id="num" maxlength="19"
+                            placeholder="0000 0000 0000 0000" oninput="formatCard(this)"></div>
+                    <div class="group"><label>Card Holder Name</label><input class="input" id="cardName" placeholder="Name on card">
+                    </div>
+                    <div class="row">
+                        <div class="group"><label>Expiry</label><input class="input" id="exp" maxlength="5"
+                                placeholder="MM/YY" oninput="formatExp(this)"></div>
+                        <div class="group"><label>CVV</label><input class="input" maxlength="3" type="password"
+                                placeholder="123" id="cvv"></div>
+                    </div>
+                </div>
+                <div class="form" id="bankForm">
+                    <div class="bank">
+                        <div class="item"><span>Bank Name</span><strong>First Bank</strong></div>
+                        <div class="item"><span>Account Number</span>
+                            <div><span class="mono" id="acc">0123456789</span> <button class="copy"
+                                    onclick="copyAcc()">Copy</button></div>
+                        </div>
+                        <div class="item"><span>Account Name</span><strong>Treasure Fortune</strong></div>
+                    </div>
+                    <div class="group"><label>Upload Receipt</label><label class="upload" id="up"><input type="file"
+                                id="file" accept="image/*" onchange="filePicked(this)">📎<br><span id="txt">Click to
+                                upload receipt or <b>browse</b></span></label></div>
+                </div>
+                <div class="actions">
+                    <button class="btn ghost" onclick="goBack()">Cancel</button>
+                    <button class="btn primary" onclick="submitPay()" id="pay">Pay ₦5,000</button>
+                </div>
+            </div>
+            <div class="success" id="done">
+                <div class="tick">✓</div>
+                <h2>Payment Submitted!</h2>
+                <p style="color:#6b7280;margin:10px 0" id="statusMessage">Your registration is pending admin approval.</p>
+                <div class="badge" id="statusBadge">Pending Approval</div>
+                <button class="btn primary" style="width:100%" onclick="location.href='login.html'">Go to Login</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        let mode = 'card', file = null;
+        
+        // Display user info on load
+        window.addEventListener('DOMContentLoaded', function() {
+            const pendingUser = JSON.parse(localStorage.getItem('treasureFortunePendingUser'));
+            const currentUser = JSON.parse(localStorage.getItem('treasureFortuneCurrentUser'));
+            const user = pendingUser || currentUser;
+            
+            if (user) {
+                document.getElementById('userName').textContent = user.name + ' (' + user.email + ')';
+            } else {
+                document.getElementById('userInfo').style.display = 'none';
+            }
+        });
+
+        function pick(el, type) { 
+            document.querySelectorAll('.method').forEach(x => { 
+                x.classList.remove('active'); 
+                x.querySelector('.check').textContent = '' 
+            }); 
+            el.classList.add('active'); 
+            el.querySelector('.check').textContent = '✓'; 
+            mode = type; 
+            document.querySelectorAll('.form').forEach(f => f.classList.remove('active')); 
+            document.getElementById(type === 'card' ? 'cardForm' : 'bankForm').classList.add('active'); 
+            document.getElementById('pay').textContent = type === 'card' ? 'Pay ₦5,000' : 'Submit Proof' 
+        }
+        function formatCard(i) { let v = i.value.replace(/\D/g, '').slice(0, 16); i.value = v.replace(/(.{4})/g, '$1 ').trim() }
+        function formatExp(i) { let v = i.value.replace(/\D/g, '').slice(0, 4); if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2); i.value = v }
+        function copyAcc() { navigator.clipboard.writeText(document.getElementById('acc').textContent) }
+        function filePicked(i) { 
+            if (i.files[0]) { 
+                file = i.files[0];
+                document.getElementById('up').classList.add('has');
+                document.getElementById('txt').innerHTML = '<b>Selected:</b> ' + file.name;
+                
+                // Convert to base64 for storage
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Store the base64 data
+                    fileBase64 = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } 
+        }
+        let fileBase64 = null;
+        
+        function goBack() {
+            const currentUser = JSON.parse(localStorage.getItem('treasureFortuneCurrentUser'));
+            if (currentUser) {
+                window.location.href = 'login.html';
+            } else {
+                window.location.href = 'signup.html';
+            }
+        }
+        
+        function submitPay() {
+            // Validate
+            if (mode === 'card' && document.getElementById('num').value.replace(/\s/g, '').length < 16) {
+                alert('Enter valid card number');
+                return;
+            }
+            if (mode === 'bank' && !file) {
+                alert('Upload receipt');
+                return;
+            }
+
+            // Get user info
+            const pendingUser = JSON.parse(localStorage.getItem('treasureFortunePendingUser'));
+            const currentUser = JSON.parse(localStorage.getItem('treasureFortuneCurrentUser'));
+            const user = pendingUser || currentUser;
+
+            if (!user) {
+                alert('User session expired. Please register again.');
+                window.location.href = 'signup.html';
+                return;
+            }
+
+            // Store payment info
+            const paymentInfo = {
+                userId: user.id,
+                userEmail: user.email,
+                userName: user.name,
+                amount: 5000,
+                method: mode,
+                status: mode === 'card' ? 'Approved' : 'Pending',
+                date: new Date().toISOString(),
+                receipt: fileBase64, // Store as base64
+                receiptName: file ? file.name : null
+            };
+
+            // Save to payments array
+            const payments = JSON.parse(localStorage.getItem('treasureFortunePayments') || '[]');
+            payments.push(paymentInfo);
+            localStorage.setItem('treasureFortunePayments', JSON.stringify(payments));
+
+            // Update user registration status
+            const users = JSON.parse(localStorage.getItem('treasureFortuneUsers') || '[]');
+            const userIndex = users.findIndex(u => u.id === user.id);
+            
+            if (userIndex >= 0) {
+                if (mode === 'card') {
+                    // Card payment - auto approve
+                    users[userIndex].hasPaidRegistration = true;
+                    users[userIndex].registrationStatus = 'Approved';
+                    users[userIndex].registrationDate = new Date().toISOString();
+                    localStorage.setItem('treasureFortuneUsers', JSON.stringify(users));
+                    
+                    // Update current user session
+                    localStorage.setItem('treasureFortuneCurrentUser', JSON.stringify(users[userIndex]));
+                    
+                    // Clear pending user
+                    localStorage.removeItem('treasureFortunePendingUser');
+                    
+                    document.getElementById('statusMessage').textContent = 'Payment successful! Your account is now active.';
+                    document.getElementById('statusBadge').textContent = 'Approved';
+                    document.getElementById('statusBadge').style.background = '#d1fae5';
+                    document.getElementById('statusBadge').style.color = '#059669';
+                } else {
+                    // Bank transfer - pending approval
+                    users[userIndex].registrationStatus = 'Pending';
+                    localStorage.setItem('treasureFortuneUsers', JSON.stringify(users));
+                    
+                    document.getElementById('statusMessage').textContent = 'Your registration is pending admin approval.';
+                    document.getElementById('statusBadge').textContent = 'Pending Approval';
+                    document.getElementById('statusBadge').style.background = '#fef3c7';
+                    document.getElementById('statusBadge').style.color = '#92400e';
+                }
+            }
+
+            // Clear pending user if exists (for new registrations)
+            localStorage.removeItem('treasureFortunePendingUser');
+
+            // Show success
+            document.getElementById('mainBox').style.display = 'none';
+            document.getElementById('done').classList.add('show');
+        }
+    </script>
+</body>
+
+</html>

@@ -779,16 +779,31 @@
 <body>
     <!-- Header -->
     <header class="admin-header">
-        <h1><i class="fas fa-shield-alt"></i> Admin Dashboard</h1>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <h1><i class="fas fa-shield-alt"></i> Admin Dashboard</h1>
+            <a href="home.html" style="color: white; text-decoration: none; font-size: 14px; opacity: 0.8;"><i class="fas fa-home"></i> View Website</a>
+        </div>
         <div class="header-actions">
-            <button class="refresh-btn" onclick="loadRequests()">
+            <button class="refresh-btn" onclick="refreshData()">
                 <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <button class="refresh-btn" onclick="adminLogout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="admin-content">
+        <!-- Users Section -->
+        <div class="requests-section" style="margin-bottom: 30px;">
+            <div class="section-header">
+                <h2>Registered Users</h2>
+            </div>
+            <div id="usersContainer">
+                <p style="padding: 20px; color: var(--text-secondary);">Loading users...</p>
+            </div>
+        </div>
         <!-- Summary Cards -->
         <div class="summary-cards">
             <div class="summary-card">
@@ -882,17 +897,18 @@
                     </div>
                 </div>
                 <div class="receipt-preview" id="receiptPreview">
-                    <div class="receipt-placeholder">
+                    <div class="receipt-placeholder" id="noReceiptMsg" style="display: none;">
                         <i class="fas fa-file-image"></i>
-                        <p id="receiptFileName">No receipt file</p>
+                        <p id="receiptFileName">No receipt uploaded</p>
                     </div>
+                    <img id="receiptImage" style="max-width: 100%; max-height: 400px; border-radius: 8px; display: none;" alt="Receipt">
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-reject" id="rejectBtn" onclick="rejectRequest()">
+                <button class="btn btn-reject" id="rejectBtn" onclick="quickReject()">
                     <i class="fas fa-times"></i> Reject
                 </button>
-                <button class="btn btn-approve" id="approveBtn" onclick="approveRequest()">
+                <button class="btn btn-approve" id="approveBtn" onclick="quickApprove()">
                     <i class="fas fa-check"></i> Approve
                 </button>
             </div>
@@ -903,19 +919,103 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
+        // Admin Login Check
+        const isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn');
+        if (!isAdminLoggedIn) {
+            window.location.href = 'admin-login.html';
+        }
+
         // Global state
         let requests = [];
         let currentFilter = 'all';
         let currentType = 'all';
         let selectedRequest = null;
+        let currentPendingId = null;
 
         // Load requests on page load
-        document.addEventListener('DOMContentLoaded', loadRequests);
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                loadRequests();
+            } catch(e) {
+                console.error('Error loading requests:', e);
+            }
+            try {
+                loadUsers();
+            } catch(e) {
+                console.error('Error loading users:', e);
+            }
+        });
 
-        // Load requests from localStorage
+        // Load registered users
+        function loadUsers() {
+            const users = JSON.parse(localStorage.getItem('treasureFortuneUsers') || '[]');
+            const container = document.getElementById('usersContainer');
+            
+            if (users.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <h3>No Users Yet</h3>
+                        <p>Users will appear here after registration.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <table class="requests-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Registration Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            users.forEach(user => {
+                const status = user.hasPaidRegistration ? 'Paid' : 'Not Paid';
+                const statusClass = user.hasPaidRegistration ? 'approved' : 'pending';
+                const date = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
+                
+                html += `
+                    <tr>
+                        <td><span class="request-name">${user.name}</span></td>
+                        <td><span class="request-email">${user.email}</span></td>
+                        <td>${user.phone || '-'}</td>
+                        <td><span class="status-badge ${statusClass}">${status}</span></td>
+                        <td>${date}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Load requests from localStorage (both adminRequests and treasureFortunePayments)
         function loadRequests() {
-            const stored = localStorage.getItem('adminRequests');
-            requests = stored ? JSON.parse(stored) : [];
+            // Load from multiple sources
+            const stored1 = localStorage.getItem('adminRequests');
+            const stored2 = localStorage.getItem('treasureFortunePayments');
+            const req1 = stored1 ? JSON.parse(stored1) : [];
+            const req2 = stored2 ? JSON.parse(stored2) : [];
+            
+            // Add type to old requests if missing
+            req1.forEach(r => {
+                if (!r.type) r.type = r.requestType || 'Registration';
+            });
+            
+            // Mark registration payments
+            req2.forEach(r => {
+                r.type = 'Registration Payment';
+                r.requestType = 'Registration';
+            });
+            
+            requests = [...req1, ...req2];
             
             // Sort by date (newest first)
             requests.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -1152,6 +1252,7 @@
             if (!request) return;
 
             selectedRequest = request;
+            currentPendingId = request.id;
 
             document.getElementById('receiptUserName').textContent = request.userName;
             document.getElementById('receiptType').textContent = request.type;
@@ -1252,6 +1353,7 @@
         function closeReceiptModal() {
             document.getElementById('receiptModal').classList.remove('active');
             selectedRequest = null;
+            currentPendingId = null;
             
             // Clean up any warning message
             const warning = document.getElementById('noReceiptWarning');
@@ -1270,31 +1372,58 @@
 
         // Approve request
         function approveRequest(requestId) {
-            const id = requestId || (selectedRequest ? selectedRequest.id : null);
-            if (!id) return;
-
-            const request = requests.find(r => r.id === id);
-            if (!request || request.status !== 'Pending') return;
-
-            // Update status
-            request.status = 'Approved';
-            localStorage.setItem('adminRequests', JSON.stringify(requests));
-
-            // Update actual user balance in localStorage
-            updateUserBalance(request);
-
-            // Update transaction in user's localStorage
-            updateUserTransaction(id, 'Approved');
-
-            closeReceiptModal();
-            updateSummary();
-            renderRequests();
-
-            showToast('success', 'Request Approved', `The ${request.type.toLowerCase()} request has been approved and balance updated`);
+            // Try parameter first, then selectedRequest object in modal
+            let id = requestId;
+            if (!id && selectedRequest && selectedRequest.id) id = selectedRequest.id;
+            if (!id) { /* Try button ID from click */ id = parseInt(this.getAttribute('data-id')); }
+            if (!id) { /* Try from viewReceipt */ id = currentPendingId; }
+            
+            if (!id) {
+                // Last resort - get first pending
+                loadRequests();
+                const all = [...requests, ...JSON.parse(localStorage.getItem('treasureFortunePayments')||'[]')];
+                const pending = all.find(x => x && x.status === 'Pending');
+                if (pending) id = pending.id;
+            }
+            
+            if (id) {
+                // Approve logic
+                const payments = JSON.parse(localStorage.getItem('treasureFortunePayments') || '[]');
+                const request = requests.find(r => r.id === id) || payments.find(p => p.id === id);
+                if (request && request.status === 'Pending') {
+                    request.status = 'Approved';
+                    localStorage.setItem('adminRequests', JSON.stringify(requests));
+                    const payIdx = payments.findIndex(p => p.id === id);
+                    if (payIdx >= 0) { payments[payIdx].status = 'Approved'; localStorage.setItem('treasureFortunePayments', JSON.stringify(payments)); }
+                    updateUserBalance(request);
+                    updateUserTransaction(id, 'Approved');
+                    closeReceiptModal();
+                    updateSummary();
+                    renderRequests();
+                    showToast('success', 'Approved', 'Request approved');
+                    return;
+                }
+            }
+            // Default fallback
+            alert('Please open a request first using View button');
         }
 
         // Update user's balance based on request type
         function updateUserBalance(request) {
+            // Handle Registration Payment - update user status
+            if (request.type === 'Registration Payment' || request.requestType === 'Registration') {
+                const users = JSON.parse(localStorage.getItem('treasureFortuneUsers') || '[]');
+                const userIndex = users.findIndex(u => u.email === request.userEmail);
+                
+                if (userIndex >= 0) {
+                    users[userIndex].hasPaidRegistration = true;
+                    users[userIndex].registrationStatus = 'Approved';
+                    users[userIndex].registrationDate = new Date().toISOString();
+                    localStorage.setItem('treasureFortuneUsers', JSON.stringify(users));
+                }
+                return;
+            }
+            
             // Try to get user state from the app - we'll find by user email
             const allStates = localStorage.getItem('treasureFortuneState');
             if (!allStates) return;
@@ -1321,6 +1450,32 @@
 
         // Reject request
         function rejectRequest(requestId) {
+            if (!selectedRequest) { alert('No request selected. Please click View first.'); return; }
+            const id = selectedRequest.id;
+            
+            loadRequests();
+            const payments = JSON.parse(localStorage.getItem('treasureFortunePayments') || '[]');
+            let request = requests.find(r => r.id === id) || payments.find(p => p.id === id);
+            
+            if (!request) { alert('Request not found'); return; }
+            if (request.status !== 'Pending') { alert('Already processed'); return; }
+            
+            request.status = 'Rejected';
+            
+            localStorage.setItem('adminRequests', JSON.stringify(requests));
+            const payIdx = payments.findIndex(p => p.id === id);
+            if (payIdx >= 0) { payments[payIdx].status = 'Rejected'; localStorage.setItem('treasureFortunePayments', JSON.stringify(payments)); }
+            
+            updateUserTransaction(id, 'Rejected');
+            
+            closeReceiptModal();
+            updateSummary();
+            renderRequests();
+            showToast('error', 'Rejected', 'Request rejected');
+        }
+
+        // OLD reject - keeping for reference
+        function rejectRequestOLD(requestId) {
             const id = requestId || (selectedRequest ? selectedRequest.id : null);
             if (!id) return;
 
@@ -1329,7 +1484,14 @@
 
             // Update status
             request.status = 'Rejected';
+            // Save to both storage locations
             localStorage.setItem('adminRequests', JSON.stringify(requests));
+            const payments = JSON.parse(localStorage.getItem('treasureFortunePayments') || '[]');
+            const payIndex = payments.findIndex(p => p.id === id);
+            if (payIndex >= 0) {
+                payments[payIndex].status = 'Rejected';
+                localStorage.setItem('treasureFortunePayments', JSON.stringify(payments));
+            }
 
             // Update transaction in user's localStorage
             updateUserTransaction(id, 'Rejected');
@@ -1356,6 +1518,58 @@
             }
             
             localStorage.setItem('treasureFortuneState', JSON.stringify(state));
+        }
+
+        // Refresh data
+        function refreshData() {
+            loadRequests();
+            loadUsers();
+            showToast('success', 'Refreshed', 'Data loaded successfully');
+        }
+
+        // Quick approve - just approves first pending
+        function quickApprove() {
+            loadRequests();
+            const payments = JSON.parse(localStorage.getItem('treasureFortunePayments') || '[]');
+            const p = payments.find(x => x && x.status === 'Pending');
+            if (p) {
+                p.status = 'Approved';
+                localStorage.setItem('treasureFortunePayments', JSON.stringify(payments));
+                // Update user
+                const users = JSON.parse(localStorage.getItem('treasureFortuneUsers') || '[]');
+                const u = users.find(x => x.email === p.userEmail);
+                if (u) { u.hasPaidRegistration = true; u.registrationStatus = 'Approved'; localStorage.setItem('treasureFortuneUsers', JSON.stringify(users)); }
+                showToast('success', 'Approved', 'Payment approved');
+                closeReceiptModal();
+                refreshData();
+            } else {
+                alert('No pending payments');
+            }
+        }
+
+        // Quick reject
+        function quickReject() {
+            loadRequests();
+            const payments = JSON.parse(localStorage.getItem('treasureFortunePayments') || '[]');
+            const p = payments.find(x => x && x.status === 'Pending');
+            if (p) {
+                p.status = 'Rejected';
+                localStorage.setItem('treasureFortunePayments', JSON.stringify(payments));
+                showToast('error', 'Rejected', 'Payment rejected');
+                closeReceiptModal();
+                refreshData();
+            } else {
+                alert('No pending payments');
+            }
+        }
+
+        // Admin Logout
+        function adminLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('isAdminLoggedIn');
+                localStorage.removeItem('adminUser');
+                window.location.href = 'admin-login.html';
+            }
         }
 
         // Show toast

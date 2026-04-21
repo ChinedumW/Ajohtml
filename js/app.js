@@ -6,6 +6,27 @@ if (!isLoggedIn) {
     window.location.href = 'login.html';
 }
 
+// Check if user has paid registration - redirect if not
+const userData = JSON.parse(localStorage.getItem('treasureFortuneCurrentUser') || 'null');
+if (userData && userData.hasPaidRegistration === false) {
+    window.location.href = 'pay.html';
+}
+
+// ===========================
+// Payment Status Check
+// ===========================
+const currentUser = JSON.parse(localStorage.getItem('treasureFortuneCurrentUser'));
+if (currentUser && !currentUser.hasPaidRegistration) {
+    // User hasn't paid, redirect to payment page
+    // Don't redirect immediately on dashboard load, just show payment required notice
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentWarning = document.getElementById('paymentWarning');
+        if (paymentWarning) {
+            paymentWarning.style.display = 'flex';
+        }
+    });
+}
+
 // ===========================
 // App State Management
 // ===========================
@@ -964,7 +985,9 @@ class UIController {
     handleLogout() {
         if (confirm('Are you sure you want to logout?')) {
             localStorage.removeItem('treasureFortuneLoggedIn');
-            window.location.href = 'login.html';
+            localStorage.removeItem('treasureFortuneCurrentUser');
+            localStorage.removeItem('treasureFortuneState');
+            window.location.href = 'index.html';
         }
     }
 

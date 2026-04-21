@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treasure Fortune Muslim Multi-Purpose Co-op</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-purple: #5b21b6;
+            --primary-purple-dark: #4c1d95;
+            --primary-purple-light: #7c3aed;
+            --accent-orange: #f97316;
+            --accent-green: #84cc16;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --text-light: #9ca3af;
+            --bg-light: #fafafa;
+            --bg-cream: #fef3f2;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--primary-purple);
+            padding: 1rem 2rem;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--white);
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .logo-icon::before {
+            content: '☪';
+            color: var(--primary-purple);
+            font-size: 1.2rem;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            transform: rotate(90deg);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 80%;
+            max-width: 400px;
+            height: 100vh;
+            background: var(--white);
+            z-index: 1001;
+            padding: 2rem;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+        }
+
+        .mobile-menu.active {
+            right: 0;
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .menu-logo {
+            color: var(--primary-purple);
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .close-menu {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-gray);
+            transition: transform 0.3s ease;
+        }
+
+        .close-menu:hover {
+            transform: rotate(90deg);
+        }
+
+        .menu-items {
+            list-style: none;
+        }
+
+        .menu-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .menu-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-dark);
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            transition: all 0.3s ease;
+        }
+
+        .menu-link:hover {
+            color: var(--primary-purple);
+            padding-left: 1rem;
+        }
+
+        .menu-arrow {
+            color: var(--text-light);
+            transition: transform 0.3s ease;
+        }
+
+        .menu-link:hover .menu-arrow {
+            transform: translateX(5px);
+            color: var(--primary-purple);
+        }
+
+        .menu-cta {
+            margin-top: 2rem;
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-purple);
+            color: var(--white);
+            border: none;
+            border-radius: 9999px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+
+        .menu-cta:hover {
+            background: var(--primary-purple-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--bg-cream);
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            color: var(--accent-orange);
+            font-size: 0.875rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .hero-title {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--accent-orange);
+            color: var(--white);
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+
+        .hero-cta::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 10px;
+            right: -10px;
+            height: 100%;
+            background: var(--accent-green);
+            border-radius: 9999px;
+            z-index: -1;
+            transition: all 0.3s ease;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(249, 115, 22, 0.4);
+        }
+
+        .hero-cta:hover::before {
+            transform: translateY(-5px);
+        }
+
+        .hero-phone {
+            margin-top: 3rem;
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .phone-mockup {
+            background: var(--white);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-xl);
+            max-width: 320px;
+            margin: 0 auto;
+            border: 8px solid #1f2937;
+            position: relative;
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 25px;
+            background: #1f2937;
+            border-radius: 0 0 1rem 1rem;
+        }
+
+        .phone-header {
+            text-align: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            margin-bottom: 1rem;
+        }
+
+        .phone-title {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            font-weight: 600;
+        }
+
+        .balance-label {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .balance-amount {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .balance-change {
+            font-size: 0.875rem;
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        .phone-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .phone-btn {
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .phone-btn-primary {
+            background: var(--primary-purple);
+            color: var(--white);
+        }
+
+        .phone-btn-secondary {
+            background: #f3f4f6;
+            color: var(--primary-purple);
+        }
+
+        .phone-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 4rem 2rem;
+            background: var(--white);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-purple-light);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-purple-light), var(--primary-purple));
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-icon::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-text {
+            color: var(--text-gray);
+            line-height: 1.7;
+        }
+
+        /* How It Works Section */
+        .how-it-works {
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-purple-dark) 100%);
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .how-it-works::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 50%;
+        }
+
+        .how-it-works .section-title {
+            color: var(--white);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-5px);
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-orange);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .step-text {
+            opacity: 0.9;
+            line-height: 1.7;
+        }
+
+        /* Membership Section */
+        .membership {
+            padding: 4rem 2rem;
+            background: var(--white);
+        }
+
+        .membership-card {
+            background: linear-gradient(135deg, #fef3f2 0%, #fff 100%);
+            border: 2px solid var(--accent-orange);
+            border-radius: 2rem;
+            padding: 3rem;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .membership-card::before {
+            content: '★';
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 4rem;
+            color: var(--accent-orange);
+            opacity: 0.2;
+        }
+
+        .membership-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .membership-price {
+            display: inline-block;
+            background: var(--primary-purple);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .benefits-list {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+
+        .benefit-check {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .meeting-info {
+            background: var(--bg-light);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-top: 1.5rem;
+            border-left: 4px solid var(--primary-purple);
+        }
+
+        .meeting-title {
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Registration Form */
+        .registration {
+            padding: 4rem 2rem;
+            background: var(--bg-light);
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 3rem;
+            border-radius: 2rem;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .form-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--text-dark);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1.25rem;
+            background: var(--primary-purple);
+            color: var(--white);
+            border: none;
+            border-radius: 9999px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            box-shadow: var(--shadow-md);
+        }
+        .submit-btn a {
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-purple-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        .log-btn {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            color: var(--primary-purple);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text-dark);
+            color: var(--white);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .footer-text {
+            opacity: 0.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            background: var(--primary-purple);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 2rem;
+            font-size: 0.875rem;
+            opacity: 0.6;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 7rem 1.5rem 3rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .membership-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .form-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .phone-mockup {
+                max-width: 280px;
+            }
+        }
+
+        /* Scroll animations */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .scroll-reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="#" class="logo">
+            <div class="logo-icon"></div>
+            <span>Treasure Fortune</span>
+        </a>
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="overlay" onclick="toggleMenu()"></div>
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="menu-header">
+            <div class="menu-logo">
+                <div class="logo-icon" style="background: var(--primary-purple); color: white;">☪</div>
+                <span>Treasure Fortune</span>
+            </div>
+            <button class="close-menu" onclick="toggleMenu()">✕</button>
+        </div>
+        <ul class="menu-items">
+            <li class="menu-item">
+                <a href="#features" class="menu-link" onclick="toggleMenu()">
+                    Products
+                    <span class="menu-arrow">›</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#how-it-works" class="menu-link" onclick="toggleMenu()">
+                    How It Works
+                    <span class="menu-arrow">›</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#membership" class="menu-link" onclick="toggleMenu()">
+                    Membership
+                    <span class="menu-arrow">›</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#faq" class="menu-link" onclick="toggleMenu()">
+                    FAQs
+                    <span class="menu-arrow">›</span>
+                </a>
+            </li>
+        </ul>
+        <a href="signup.html" class="menu-cta">Get Started</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <span class="hero-badge">Sharia-Compliant Finance</span>
+        <h1 class="hero-title">Interest-Free Loans, Peace of Mind 😊</h1>
+        <p class="hero-subtitle">Empowering Our Members, Guided by Islamic Principles. Save and earn while building credibility for interest-free financing.</p>
+        <a href="signup.html" class="hero-cta">
+            Create a free account
+            <span>→</span>
+        </a>
+
+        <!-- Phone Mockup -->
+        <div class="hero-phone">
+            <div class="phone-mockup">
+                <div class="phone-notch"></div>
+                <div class="phone-header">
+                    <div class="phone-title">Basic Thrift Box 1</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="balance-label">Thrift Balance</div>
+                    <div class="balance-amount">₦5,000.00</div>
+                    <div class="balance-change">+ ₦0.00 ~ 0.00%</div>
+                </div>
+                <div class="phone-actions">
+                    <button class="phone-btn phone-btn-primary">Contribute</button>
+                    <button class="phone-btn phone-btn-secondary">Withdraw</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header scroll-reveal">
+                <h2 class="section-title">Why Choose Treasure Fortune?</h2>
+                <p style="color: var(--text-gray);">Islamic finance solutions for modern needs</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card scroll-reveal">
+                    <div class="feature-icon">🕌</div>
+                    <h3 class="feature-title">Sharia-Compliant</h3>
+                    <p class="feature-text">All our operations adhere strictly to Islamic principles. No interest (Riba), no hidden fees, complete transparency in all transactions.</p>
+                </div>
+                <div class="feature-card scroll-reveal">
+                    <div class="feature-icon">💰</div>
+                    <h3 class="feature-title">Save Money</h3>
+                    <p class="feature-text">With thrift contributions, easily save your money on schedule based on your chosen plan. Automate your savings and watch your wealth grow.</p>
+                </div>
+                <div class="feature-card scroll-reveal">
+                    <div class="feature-icon">🤝</div>
+                    <h3 class="feature-title">Community Support</h3>
+                    <p class="feature-text">Join a supportive community of like-minded individuals. Weekly meetings every Saturday to share knowledge and strengthen bonds.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <div class="section-header scroll-reveal">
+                <h2 class="section-title">How It Works</h2>
+                <p style="opacity: 0.9;">Simple steps to financial freedom</p>
+            </div>
+            <div class="steps">
+                <div class="step scroll-reveal">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Register</h3>
+                    <p class="step-text">Pay one-time registration fee of ₦5,000 (includes ID card, passbook, and form)</p>
+                </div>
+                <div class="step scroll-reveal">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Save Regularly</h3>
+                    <p class="step-text">Contribute daily, weekly, or monthly. Earn up to 18% interest p.a on your savings.</p>
+                </div>
+                <div class="step scroll-reveal">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Access Loans</h3>
+                    <p class="step-text">Once eligible, access interest-free micro-loans at 0% APR with flexible repayment terms.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Membership Section -->
+    <section class="membership" id="membership">
+        <div class="container">
+            <div class="membership-card scroll-reveal">
+                <h2 class="membership-title">
+                    <span>⭐</span>
+                    Membership Details
+                </h2>
+                <span class="membership-price">₦5,000 one-time fee</span>
+                <p style="color: var(--text-gray); margin-bottom: 1.5rem;">Everything you need to get started on your journey to financial freedom</p>
+                
+                <ul class="benefits-list">
+                    <li class="benefit-item">
+                        <span class="benefit-check">✓</span>
+                        <span>Registration form and processing</span>
+                    </li>
+                    <li class="benefit-item">
+                        <span class="benefit-check">✓</span>
+                        <span>Official Membership ID Card</span>
+                    </li>
+                    <li class="benefit-item">
+                        <span class="benefit-check">✓</span>
+                        <span>Personalized Savings Passbook</span>
+                    </li>
+                    <li class="benefit-item">
+                        <span class="benefit-check">✓</span>
+                        <span>Access to interest-free loans</span>
+                    </li>
+                    <li class="benefit-item">
+                        <span class="benefit-check">✓</span>
+                        <span>Flexible repayment plans</span>
+                    </li>
+                    <li class="benefit-item">
+                        <span class="benefit-check">✓</span>
+                        <span>Supportive community membership</span>
+                    </li>
+                </ul>
+
+                <div class="meeting-info">
+                    <div class="meeting-title">📅 Weekly Meetings</div>
+                    <p style="color: var(--text-gray);">Saturdays, 12:00 PM - 1:00 PM</p>
+                    <p style="color: var(--text-light); font-size: 0.875rem; margin-top: 0.5rem;">Join us for financial literacy sessions and community bonding</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Registration Form -->
+    <section class="registration" id="registration">
+        <div class="container">
+            <div class="form-container scroll-reveal">
+                <h2 class="form-title">Join Our Community Today!</h2>
+                <form id="registrationForm" onsubmit="handleSubmit(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-input" placeholder="Enter first name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-input" placeholder="Enter last name" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-input" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" class="form-input" placeholder="+234 000 000 0000" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" placeholder="Enter your password" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm your password</label>
+                        <input type="password" class="form-input" placeholder="Re-enter password" required>
+                    </div>
+
+
+                    <!-- <div class="form-group">
+                        <label class="form-label">Occupation</label>
+                        <input type="text" class="form-input" placeholder="Enter your occupation" required>
+                    </div> -->
+                    <!-- <div class="form-group">
+                        <label class="form-label">Preferred Contribution Plan</label>
+                        <select class="form-input" required>
+                            <option value="">Select a plan</option>
+                            <option value="daily">Daily Contribution</option>
+                            <option value="weekly">Weekly Contribution</option>
+                            <option value="monthly">Monthly Contribution</option>
+                        </select>
+                    </div> -->
+                    <button type="submit" class="submit-btn" > <a href="./pay.html">Complete Registration</a> </button>
+                    <a class="log-btn" href="./login.html">Already have an account? Log in</a>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-logo">
+            <div class="logo-icon" style="background: white; color: var(--text-dark);">☪</div>
+            <span>Treasure Fortune</span>
+        </div>
+        <p class="footer-text">Empowering communities through Islamic finance</p>
+        <div class="social-links">
+            <a href="#" class="social-link"><i class="fab fab fab fa-facebook"></i></a>
+            <a href="#" class="social-link"><i class="fab fab fa-tiktok"></i></a>
+            <a href="#" class="social-link"><i class="fab fab fa-whatsapp"></i></a>
+            <a href="#" class="social-link"><i class="fab fab fa-instagram"></i></a>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Treasure Fortune Muslim Multi-Purpose Co-op. All rights reserved. SiR AROLAT-TECH</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.querySelector('.overlay');
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : '';
+        }
+
+        // Smooth Scroll
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+                toggleMenu();
+            }
+        }
+
+        // Form Submission
+        // function handleSubmit(e) {
+        //     e.preventDefault();
+        //     const btn = e.target.querySelector('.submit-btn');
+        //     const originalText = btn.textContent;
+            
+        //     btn.textContent = 'Processing...';
+        //     btn.disabled = true;
+            
+        //     setTimeout(() => {
+        //         btn.textContent = '✓ Registration Successful!';
+        //         btn.style.background = 'var(--accent-green)';
+                
+        //         setTimeout(() => {
+        //             btn.textContent = originalText;
+        //             btn.disabled = false;
+        //             btn.style.background = '';
+        //             e.target.reset();
+        //             alert('Thank you for registering! We will contact you shortly with your membership details.');
+        //         }, 2000);
+        //     }, 1500);
+        // }
+
+        // Scroll Reveal Animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-reveal').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Navbar scroll effect
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll > 100) {
+                navbar.style.background = 'rgba(91, 33, 182, 0.95)';
+                navbar.style.backdropFilter = 'blur(10px)';
+            } else {
+                navbar.style.background = 'var(--primary-purple)';
+                navbar.style.backdropFilter = 'none';
+            }
+            
+            lastScroll = currentScroll;
+        });
+
+        // Phone mockup interaction
+        document.querySelectorAll('.phone-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>
