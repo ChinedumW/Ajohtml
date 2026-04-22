@@ -1254,10 +1254,13 @@
             selectedRequest = request;
             currentPendingId = request.id;
 
-            document.getElementById('receiptUserName').textContent = request.userName;
-            document.getElementById('receiptType').textContent = request.type;
-            document.getElementById('receiptAmount').textContent = `₦${request.amount.toLocaleString()}`;
-            document.getElementById('receiptDate').textContent = new Date(request.date).toLocaleDateString();
+            document.getElementById('receiptUserName').textContent = request.userName || 'Unknown';
+            document.getElementById('receiptType').textContent = request.type || 'Unknown';
+            document.getElementById('receiptAmount').textContent = `₦${(request.amount || 0).toLocaleString()}`;
+            document.getElementById('receiptDate').textContent = request.date ? new Date(request.date).toLocaleDateString() : 'Unknown';
+            
+            // Debug: show request ID
+            console.log('Viewing request ID:', request.id, 'Type:', request.type, 'Receipt length:', (request.receipt || '').length);
             
             const preview = document.getElementById('receiptPreview');
             const approveBtn = document.getElementById('approveBtn');
@@ -1268,22 +1271,22 @@
             let hasReceipt = false;
             let imgSrc = '';
             
-            // Check if we have any receipt data at all (even short ones)
-            if (receiptData && receiptData.length > 20) {
+            // Debug receipt
+            const receiptLen = receiptData ? receiptData.length : 0;
+            console.log('Receipt debug - length:', receiptLen, 'starts:', receiptData ? receiptData.substring(0,30) : 'none');
+            
+            // Accept ANY receipt data from 50 chars
+            if (receiptData && receiptLen > 50) {
                 hasReceipt = true;
-                // Clean up the data - remove any whitespace
                 receiptData = receiptData.trim();
                 
-                // Determine the image source
-                if (receiptData.startsWith('data:')) {
-                    // Already has data URL prefix
+                // Check what kind of data
+                if (receiptData.startsWith('data:image')) {
                     imgSrc = receiptData;
-                } else if (receiptData.startsWith('/') || receiptData.startsWith('http')) {
-                    // URL to image
+                } else if (receiptData.startsWith('http')) {
                     imgSrc = receiptData;
                 } else {
-                    // Assume it's base64 - try to detect format
-                    // Check if it might be PNG or JPEG
+                    // Try as base64 - add prefix
                     imgSrc = 'data:image/jpeg;base64,' + receiptData;
                 }
             }
@@ -1295,14 +1298,13 @@
             rejectBtn.style.display = isPending ? 'flex' : 'none';
             
             if (isPending) {
+                // Allow admin to approve even without receipt (for card payments or manual verification)
+                approveBtn.disabled = false;
+                approveBtn.title = 'Click to approve this request';
                 if (hasReceipt) {
-                    approveBtn.disabled = false;
-                    approveBtn.title = '';
-                    approveBtn.innerHTML = '<i class="fas fa-check"></i> Approve Request';
+                    approveBtn.innerHTML = '<i class="fas fa-check"></i> Approve with Receipt';
                 } else {
-                    approveBtn.disabled = true;
-                    approveBtn.title = 'Cannot approve without receipt';
-                    approveBtn.innerHTML = '<i class="fas fa-ban"></i> No Receipt';
+                    approveBtn.innerHTML = '<i class="fas fa-check"></i> Approve Request';
                 }
             }
             
@@ -1322,12 +1324,18 @@
                     </div>
                 `;
             } else {
+                // Show placeholder even if no image, but let user see it's a bank transfer
+                const method = request.method || '';
+                const isBank = method.toLowerCase().includes('bank');
                 preview.innerHTML = `
-                    <div class="receipt-placeholder" style="padding:40px;">
+                    <div class="receipt-placeholder" style="padding:40px;text-align:center;">
                         <i class="fas fa-file-image" style="font-size:64px;color:#d1d5db;"></i>
-                        <p style="font-size:16px;font-weight:600;margin-top:12px;">No Receipt Image</p>
-                        <p style="font-size:13px;color:#6b7280;">User hasn't uploaded proof of payment yet</p>
-                        <p style="font-size:11px;color:#9ca3af;margin-top:8px;">Receipt: ${request.receipt ? 'exists but too short' : 'not uploaded'}</p>
+                        <p style="font-size:16px;font-weight:600;margin-top:12px;">${isBank ? 'Bank Transfer - Pending Review' : 'No Receipt Image'}</p>
+                        <p style="font-size:13px;color:#6b7280;margin-top:8px;">${isBank ? 'User transferred - verify and approve' : 'Card payment - autoapproved'}</p>
+                        <div style="margin-top:20px;padding:15px;background:#fef3c7;border-radius:8px;">
+                            <i class="fas fa-info-circle" style="color:#d97706;"></i>
+                            <p style="color:#92400e;font-size:13px;margin-top:5px;">Review this request and click Approve if payment is confirmed</p>
+                        </div>
                     </div>
                 `;
             }
@@ -1433,16 +1441,25 @@
             // Ensure whole naira amount
             const amount = Math.floor(request.amount);
             
-            if (request.type === 'Top-up') {
+            // Handle different transaction types (case insensitive)
+            const type = request.type || '';
+            const typeLower = type.toLowerCase();
+            
+            if (typeLower === 'topup' || typeLower === 'top-up' || typeLower === 'wallet topup') {
                 // Add to wallet
                 state.wallet = (state.wallet || 0) + amount;
-            } else if (request.type === 'Loan Repayment') {
-                // Add to loan paid
+            } else if (typeLower === 'payment' || typeLower === 'loan repayment' || typeLower === 'repayment') {
+                // Add to loan paid (negative amount means payment towards loan)
                 state.loan = state.loan || { amount: 0, paid: 0 };
-                state.loan.paid = (state.loan.paid || 0) + amount;
-            } else if (request.type === 'Savings') {
+                state.loan.paid = (state.loan.paid || 0) + Math.abs(amount);
+            } else if (typeLower === 'savings' || typeLower === 'savings deposit') {
                 // Add to savings
                 state.savings = (state.savings || 0) + amount;
+            } else if (typeLower === 'loan' || typeLower === 'loan request') {
+                // Create new loan for user
+                state.loan = state.loan || { amount: 0, paid: 0 };
+                state.loan.amount = amount;
+                state.loan.paid = 0;
             }
             
             localStorage.setItem('treasureFortuneState', JSON.stringify(state));
@@ -1527,39 +1544,105 @@
             showToast('success', 'Refreshed', 'Data loaded successfully');
         }
 
-        // Quick approve - just approves first pending
+        // Quick approve - uses currently selected request from modal
         function quickApprove() {
-            loadRequests();
-            const payments = JSON.parse(localStorage.getItem('treasureFortunePayments') || '[]');
-            const p = payments.find(x => x && x.status === 'Pending');
-            if (p) {
-                p.status = 'Approved';
-                localStorage.setItem('treasureFortunePayments', JSON.stringify(payments));
-                // Update user
-                const users = JSON.parse(localStorage.getItem('treasureFortuneUsers') || '[]');
-                const u = users.find(x => x.email === p.userEmail);
-                if (u) { u.hasPaidRegistration = true; u.registrationStatus = 'Approved'; localStorage.setItem('treasureFortuneUsers', JSON.stringify(users)); }
-                showToast('success', 'Approved', 'Payment approved');
-                closeReceiptModal();
-                refreshData();
-            } else {
-                alert('No pending payments');
+            if (!selectedRequest) {
+                // Fallback: find first pending from any source
+                loadRequests();
+                const pending = requests.find(r => r && r.status === 'Pending');
+                if (!pending) {
+                    const payments = JSON.parse(localStorage.getItem('treasureFortunePayments') || '[]');
+                    if (payments.length > 0 && payments[0].status === 'Pending') {
+                        approveAnyRequest(payments[0]);
+                        return;
+                    }
+                    alert('No pending requests to approve');
+                    return;
+                }
+                selectedRequest = pending;
+            }
+            
+            if (selectedRequest) {
+                approveAnyRequest(selectedRequest);
             }
         }
 
-        // Quick reject
-        function quickReject() {
-            loadRequests();
-            const payments = JSON.parse(localStorage.getItem('treasureFortunePayments') || '[]');
-            const p = payments.find(x => x && x.status === 'Pending');
-            if (p) {
-                p.status = 'Rejected';
+        // Helper to approve any request type
+        function approveAnyRequest(req) {
+            const id = req.id;
+            const type = req.type || '';
+            const userEmail = req.userEmail;
+            
+            // Update status in adminRequests
+            let adminReqs = JSON.parse(localStorage.getItem('adminRequests') || '[]');
+            const aIdx = adminReqs.findIndex(r => r.id === id);
+            if (aIdx >= 0) {
+                adminReqs[aIdx].status = 'Approved';
+                localStorage.setItem('adminRequests', JSON.stringify(adminReqs));
+            }
+            
+            // Update in treasureFortunePayments
+            let payments = JSON.parse(localStorage.getItem('treasureFortunePayments') || '[]');
+            const pIdx = payments.findIndex(p => p.id === id);
+            if (pIdx >= 0) {
+                payments[pIdx].status = 'Approved';
                 localStorage.setItem('treasureFortunePayments', JSON.stringify(payments));
-                showToast('error', 'Rejected', 'Payment rejected');
+            }
+            
+            // Update registration status if registration payment
+            if (type.toLowerCase().includes('registration')) {
+                let users = JSON.parse(localStorage.getItem('treasureFortuneUsers') || '[]');
+                let u = users.find(x => x.email === userEmail);
+                if (u) { 
+                    u.hasPaidRegistration = true; 
+                    u.registrationStatus = 'Approved'; 
+                    localStorage.setItem('treasureFortuneUsers', JSON.stringify(users)); 
+                }
+            }
+            
+            // Update user balances for other transaction types
+            updateUserBalance(req);
+            
+            showToast('success', 'Approved', type + ' request approved');
+            selectedRequest = null;
+            closeReceiptModal();
+            refreshData();
+        }
+
+        // Quick reject - uses currently selected request
+        function quickReject() {
+            if (!selectedRequest) {
+                // Fallback: find first pending
+                loadRequests();
+                const pending = requests.find(r => r && r.status === 'Pending');
+                if (pending) selectedRequest = pending;
+                else { alert('No pending requests'); return; }
+            }
+            
+            if (selectedRequest) {
+                const id = selectedRequest.id;
+                const type = selectedRequest.type;
+                
+                // Update in adminRequests
+                let adminReqs = JSON.parse(localStorage.getItem('adminRequests') || '[]');
+                const aIdx = adminReqs.findIndex(r => r.id === id);
+                if (aIdx >= 0) {
+                    adminReqs[aIdx].status = 'Rejected';
+                    localStorage.setItem('adminRequests', JSON.stringify(adminReqs));
+                }
+                
+                // Update in treasureFortunePayments
+                let payments = JSON.parse(localStorage.getItem('treasureFortunePayments') || '[]');
+                const pIdx = payments.findIndex(p => p.id === id);
+                if (pIdx >= 0) {
+                    payments[pIdx].status = 'Rejected';
+                    localStorage.setItem('treasureFortunePayments', JSON.stringify(payments));
+                }
+                
+                showToast('error', 'Rejected', type + ' request rejected');
+                selectedRequest = null;
                 closeReceiptModal();
                 refreshData();
-            } else {
-                alert('No pending payments');
             }
         }
 
