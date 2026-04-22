@@ -110,6 +110,12 @@ class AppState {
     }
 
     addSavings(amount) {
+        // Check wallet balance before allowing savings
+        if (amount > this.wallet) {
+            throw new Error('Insufficient wallet balance for savings');
+        }
+        // Deduct from wallet and add to savings
+        this.wallet -= amount;
         this.savings += amount;
         this.addTransaction('savings', amount, 'Savings Deposit');
         this.addNotification('success', 'Savings Added', `You successfully added ₦${amount.toLocaleString()} to your savings`);
@@ -117,9 +123,17 @@ class AppState {
     }
 
     makePayment(amount) {
-        if (amount > this.loan.amount - this.loan.paid) {
-            amount = this.loan.amount - this.loan.paid;
+        // Cap payment at remaining balance
+        const remaining = this.loan.amount - this.loan.paid;
+        if (amount > remaining) {
+            amount = remaining;
         }
+        
+        // Ensure we have a valid amount to pay
+        if (amount <= 0) {
+            return false;
+        }
+        
         this.loan.paid += amount;
         this.addTransaction('payment', -amount, 'Loan Payment');
         
@@ -131,6 +145,7 @@ class AppState {
         }
         
         this.saveState();
+        return true;
     }
     
     handleLoanCompletion() {
@@ -179,8 +194,11 @@ class AppState {
     updateNotificationBadge() {
         // Count only unread notifications
         const unreadCount = this.notifications.filter(n => !n.read).length;
-        this.notificationBadge.textContent = unreadCount;
-        this.notificationBadge.style.display = unreadCount === 0 ? 'none' : 'block';
+        // Add null check before updating badge
+        if (this.notificationBadge) {
+            this.notificationBadge.textContent = unreadCount;
+            this.notificationBadge.style.display = unreadCount === 0 ? 'none' : 'block';
+        }
     }
 
     updateUser(name, email) {
@@ -1235,19 +1253,8 @@ class UIController {
             
             // Process based on payment type
             if (this.paymentType === 'payment') {
-                this.appState.loan.paid += amount;
-                const transaction = {
-                    id: Date.now(),
-                    type: 'payment',
-                    amount: -amount,
-                    date: new Date().toISOString().split('T')[0],
-                    description: 'Loan Payment (Card)',
-                    method: 'card',
-                    status: 'successful',
-                    receipt: null
-                };
-                this.appState.transactions.unshift(transaction);
-                this.appState.addNotification('success', 'Payment Successful', `₦${amount.toLocaleString()} paid via card`);
+                // Use makePayment to ensure proper validation and notification
+                this.appState.makePayment(amount);
                 
                 // Check if loan is fully repaid
                 if (this.appState.loan.paid >= this.appState.loan.amount) {
@@ -1256,8 +1263,6 @@ class UIController {
                     
                     setTimeout(() => {
                         successOverlay.classList.remove('active');
-                        // Reset loan
-                        this.appState.loan = { amount: 0, paid: 0 };
                         this.appState.saveState();
                         this.updateUI();
                         this.updateLoanProgress();
@@ -1278,19 +1283,11 @@ class UIController {
                 this.appState.transactions.unshift(transaction);
                 this.appState.addNotification('success', 'Top Up Successful', `₦${amount.toLocaleString()} added to your wallet`);
             } else if (this.paymentType === 'savings') {
-                this.appState.savings += amount;
-                const transaction = {
-                    id: Date.now(),
-                    type: 'savings',
-                    amount: amount,
-                    date: new Date().toISOString().split('T')[0],
-                    description: 'Savings Deposit (Card)',
-                    method: 'card',
-                    status: 'successful',
-                    receipt: null
-                };
-                this.appState.transactions.unshift(transaction);
-                this.appState.addNotification('success', 'Savings Successful', `₦${amount.toLocaleString()} added to your savings`);
+                try {
+                    this.appState.addSavings(amount);
+                } catch (error) {
+                    alert(error.message);
+                }
             }
 
             this.appState.saveState();
@@ -1398,6 +1395,12 @@ class UIController {
     closeSimplePaymentModal() {
         document.getElementById('simplePaymentModal').classList.remove('active');
         this.simplePaymentMethod = 'wallet';
+        // Clear input fields
+        document.getElementById('simplePaymentAmount').value = '';
+        document.getElementById('simpleCardNumber').value = '';
+        document.getElementById('simpleCardExpiry').value = '';
+        document.getElementById('simpleCardCvv').value = '';
+        document.getElementById('simpleCardName').value = '';
     }
     
     selectPaymentMethod(method) {
@@ -1657,6 +1660,12 @@ class UIController {
     }
     
     processSavings(amount) {
+        // Check wallet balance first
+        if (amount > this.appState.wallet) {
+            alert('Insufficient wallet balance. Please top up your wallet first.');
+            return;
+        }
+        
         // Show processing
         const overlay = document.getElementById('processingOverlay');
         const text = document.getElementById('processingText');
@@ -1666,10 +1675,14 @@ class UIController {
         setTimeout(() => {
             overlay.classList.remove('active');
             
-            // Deduct from wallet and add to savings
-            this.appState.wallet -= amount;
-            this.appState.addSavings(amount);
-            this.updateUI();
+            // addSavings now handles wallet deduction internally
+            try {
+                this.appState.addSavings(amount);
+                this.updateUI();
+                this.showToast('success', 'Savings Added', `₦${amount.toLocaleString()} added to your savings`);
+            } catch (error) {
+                alert(error.message);
+            }
         }, 3000);
     }
 

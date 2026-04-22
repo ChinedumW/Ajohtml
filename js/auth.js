@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Initialize user state if not exists
                 if (!localStorage.getItem('treasureFortuneState')) {
                     const initialState = {
-                        user: { name: user.name, email: user.email, avatar: null },
-                        wallet: 50000, // Initial wallet balance
+                        user: { name: user.name, email: user.email, avatar: null, id: user.id },
+                        wallet: 0, // Default wallet balance
                         savings: 0,
                         loan: { amount: 0, paid: 0 },
                         transactions: [],
@@ -39,7 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('treasureFortuneState', JSON.stringify(initialState));
                 }
                 
-                window.location.href = 'dashboard.html';
+                // Check if user has paid registration
+                if (!user.hasPaidRegistration) {
+                    window.location.href = 'pay.html';
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
             } else {
                 alert('Invalid email or password');
             }
@@ -79,11 +84,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Create new user
+            // Create new user with unique ID and payment flag
             const newUser = {
+                id: 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                 name: fullName,
                 email: email,
-                password: password
+                password: password,
+                hasPaidRegistration: false,
+                registrationStatus: 'Pending',
+                createdAt: new Date().toISOString()
             };
 
             users.push(newUser);
@@ -93,9 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('treasureFortuneLoggedIn', 'true');
             localStorage.setItem('treasureFortuneCurrentUser', JSON.stringify(newUser));
             
-            // Initialize user state
+            // Initialize user state with wallet defaulting to 0
             const initialState = {
-                user: { name: fullName, email: email },
+                user: { name: fullName, email: email, id: newUser.id },
+                wallet: 0,
                 savings: 0,
                 loan: { amount: 0, paid: 0 },
                 transactions: [],
@@ -109,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             localStorage.setItem('treasureFortuneState', JSON.stringify(initialState));
 
-            window.location.href = 'dashboard.html';
+            window.location.href = 'pay.html';
         });
     }
 });
