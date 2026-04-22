@@ -1005,6 +1005,7 @@ class UIController {
     paymentMethod = 'bank'; // 'bank' or 'card'
     uploadedReceiptFile = null;
     paymentType = null; // 'payment', 'topup', 'savings'
+    pendingPaymentAmount = null; // Amount from simple modal
 
     // Unified Payment Modal Methods
     openPaymentModal(type) {
@@ -1206,8 +1207,9 @@ class UIController {
             return;
         }
         
-        // Ensure whole naira amount (no decimals/kobo)
-        const amount = Math.floor(parseFloat(document.getElementById('paymentAmountInput').value));
+        // Use pending amount if set, otherwise get from input
+        const amount = this.pendingPaymentAmount || Math.floor(parseFloat(document.getElementById('paymentAmountInput').value));
+        this.pendingPaymentAmount = null; // Clear pending amount
         
         // Close modal
         this.closePaymentModal();
@@ -1503,37 +1505,19 @@ class UIController {
     }
     
     processLoanPaymentFromBank(amount) {
-        // Save payment request to admin for approval
-        const state = this.appState;
-        const request = {
-            id: Date.now(),
-            userId: state.currentUser?.id,
-            userEmail: state.currentUser?.email,
-            userName: state.currentUser?.name,
-            type: 'Loan Repayment',
-            amount: amount,
-            method: 'Bank Transfer',
-            status: 'Pending',
-            date: new Date().toISOString(),
-            receipt: this.uploadedReceiptFile || null
-        };
+        // For bank transfer, need to upload receipt - redirect to payment modal
+        // Store amount temporarily for the payment modal
+        this.pendingPaymentAmount = amount;
+        this.closeSimplePaymentModal();
         
-        // Save to admin requests
-        const adminRequests = JSON.parse(localStorage.getItem('adminRequests') || '[]');
-        adminRequests.push(request);
-        localStorage.setItem('adminRequests', JSON.stringify(adminRequests));
+        // Open the full payment modal with bank transfer already selected
+        this.openPaymentModal('payment');
         
-        // Show processing
-        const overlay = document.getElementById('processingOverlay');
-        const text = document.getElementById('processingText');
-        text.innerHTML = 'Processing your payment<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
-        overlay.classList.add('active');
+        // Pre-fill the amount
+        document.getElementById('paymentAmountInput').value = amount;
         
-        setTimeout(() => {
-            overlay.classList.remove('active');
-            this.closeSimplePaymentModal();
-            this.showToast('success', 'Payment Submitted', 'Your payment is pending admin approval');
-        }, 1500);
+        // Show bank transfer section
+        this.showPaymentMethod('bank');
     }
     
     processLoanPaymentFromCard(amount) {
