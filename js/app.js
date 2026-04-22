@@ -162,10 +162,25 @@ class AppState {
             type,
             title,
             message,
-            time: 'Just now'
+            time: 'Just now',
+            read: false
         };
         this.notifications.unshift(notification);
         this.saveState();
+    }
+    
+    markAllNotificationsRead() {
+        // Mark all notifications as read
+        this.notifications.forEach(n => n.read = true);
+        this.saveState();
+        this.updateNotificationBadge();
+    }
+    
+    updateNotificationBadge() {
+        // Count only unread notifications
+        const unreadCount = this.notifications.filter(n => !n.read).length;
+        this.notificationBadge.textContent = unreadCount;
+        this.notificationBadge.style.display = unreadCount === 0 ? 'none' : 'block';
     }
 
     updateUser(name, email) {
@@ -366,7 +381,7 @@ class UIController {
         });
 
         document.getElementById('makeRepaymentBtn')?.addEventListener('click', () => {
-            this.openBankTransferModal('payment');
+            this.openSimplePaymentModal();
         });
         
         // Simple Payment Modal handlers
@@ -573,13 +588,8 @@ class UIController {
             this.userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.appState.user.name)}&background=7c3aed&color=fff`;
         }
         
-        // Update notification badge
-        this.notificationBadge.textContent = this.appState.notifications.length;
-        if (this.appState.notifications.length === 0) {
-            this.notificationBadge.style.display = 'none';
-        } else {
-            this.notificationBadge.style.display = 'block';
-        }
+        // Update notification badge for unread only
+        this.updateNotificationBadge();
         
         // Update current page
         this.updatePageContent(this.currentPage);
@@ -1244,12 +1254,12 @@ class UIController {
                     
                     setTimeout(() => {
                         successOverlay.classList.remove('active');
+                        // Reset loan
                         this.appState.loan = { amount: 0, paid: 0 };
                         this.appState.saveState();
                         this.updateUI();
-                        this.showToast('success', 'Loan Completed', 'You can now borrow a new loan!');
-                    }, 2500);
-                    return;
+                        this.updateLoanProgress();
+                    }, 4000);
                 }
             } else if (this.paymentType === 'topup') {
                 this.appState.wallet += amount;
@@ -1369,17 +1379,197 @@ class UIController {
         this.handlePaymentConfirmation();
     }
 
-    // Simple Payment Modal Methods - Redirect to unified payment modal
+    // Simple Payment Modal Methods - With payment method selection
+    simplePaymentMethod = 'wallet'; // Default payment method
+    
     openSimplePaymentModal() {
-        this.openPaymentModal('payment');
+        this.simplePaymentMethod = 'wallet';
+        this.updateSimplePaymentUI();
+        // Load loan info
+        const loanBalance = this.appState.getLoanRemaining();
+        const loanPaid = this.appState.loan?.paid || 0;
+        document.getElementById('modalLoanBalance').textContent = `₦${loanBalance.toLocaleString()}`;
+        document.getElementById('modalLoanPaid').textContent = `₦${loanPaid.toLocaleString()}`;
+        document.getElementById('simplePaymentModal').classList.add('active');
     }
     
     closeSimplePaymentModal() {
         document.getElementById('simplePaymentModal').classList.remove('active');
+        this.simplePaymentMethod = 'wallet';
+    }
+    
+    selectPaymentMethod(method) {
+        this.simplePaymentMethod = method;
+        this.updateSimplePaymentUI();
+    }
+    
+    updateSimplePaymentUI() {
+        const tabs = document.querySelectorAll('#simplePaymentModal .payment-method-tab');
+        tabs.forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.method === this.simplePaymentMethod);
+        });
+        
+        // Show/hide appropriate sections
+        document.getElementById('walletPaymentInfo').style.display = this.simplePaymentMethod === 'wallet' ? 'block' : 'none';
+        document.getElementById('bankPaymentInfo').style.display = this.simplePaymentMethod === 'bank' ? 'block' : 'none';
+        document.getElementById('cardPaymentInfo').style.display = this.simplePaymentMethod === 'card' ? 'block' : 'none';
+        
+        // Update button text based on method
+        const confirmBtn = document.getElementById('confirmSimplePayment');
+        if (this.simplePaymentMethod === 'wallet') {
+            confirmBtn.textContent = 'Pay Now';
+        } else if (this.simplePaymentMethod === 'bank') {
+            confirmBtn.textContent = 'Submit Proof';
+        } else {
+            confirmBtn.textContent = 'Pay Now';
+        }
     }
     
     handleSimplePayment() {
-        this.openPaymentModal('payment');
+        const amount = parseInt(document.getElementById('simplePaymentAmount').value);
+        
+        if (!amount || amount < 100) {
+            alert('Please enter a valid amount (minimum ₦100)');
+            return;
+        }
+        
+        const method = this.simplePaymentMethod;
+        
+        if (method === 'wallet') {
+            // Pay from wallet - process directly
+            this.processLoanPaymentFromWallet(amount);
+        } else if (method === 'bank') {
+            // Bank transfer - save request for admin approval
+            this.processLoanPaymentFromBank(amount);
+        } else if (method === 'card') {
+            // Card payment - process directly
+            const cardNum = document.getElementById('simpleCardNumber').value.replace(/\s/g, '');
+            const cardExpiry = document.getElementById('simpleCardExpiry').value;
+            const cardCvv = document.getElementById('simpleCardCvv').value;
+            const cardName = document.getElementById('simpleCardName').value;
+            
+            if (cardNum.length < 16 || !cardExpiry || !cardCvv || !cardName) {
+                alert('Please fill in all card details');
+                return;
+            }
+            
+            this.processLoanPaymentFromCard(amount);
+        }
+    }
+    
+    processLoanPaymentFromWallet(amount) {
+        // Check wallet balance
+        if (this.appState.wallet < amount) {
+            alert('Insufficient wallet balance. Please top up or use bank transfer.');
+            return;
+        }
+        
+        // Show processing
+        const overlay = document.getElementById('processingOverlay');
+        const text = document.getElementById('processingText');
+        text.innerHTML = 'Processing your payment<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+        overlay.classList.add('active');
+        
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            
+            // Deduct from wallet
+            this.appState.wallet -= amount;
+            
+            // Calculate remaining after payment
+            const remaining = this.appState.getLoanRemaining() - amount;
+            
+            // Process payment
+            this.appState.makePayment(amount);
+            
+            // Check if loan is fully repaid
+            if (remaining <= 0) {
+                const successOverlay = document.getElementById('loanSuccessOverlay');
+                successOverlay.classList.add('active');
+            }
+            
+            // Save state
+            this.saveState();
+            this.updateBalanceDisplay();
+            this.closeSimplePaymentModal();
+            
+            // Show success toast
+            this.showToast('success', 'Payment Successful', `₦${amount.toLocaleString()} paid towards your loan`);
+            
+            // Refresh loan display
+            this.updateLoanProgress();
+            this.loadTransactionHistory();
+        }, 2000);
+    }
+    
+    processLoanPaymentFromBank(amount) {
+        // Save payment request to admin for approval
+        const state = this.appState;
+        const request = {
+            id: Date.now(),
+            userId: state.currentUser?.id,
+            userEmail: state.currentUser?.email,
+            userName: state.currentUser?.name,
+            type: 'Loan Repayment',
+            amount: amount,
+            method: 'Bank Transfer',
+            status: 'Pending',
+            date: new Date().toISOString(),
+            receipt: this.uploadedReceiptFile || null
+        };
+        
+        // Save to admin requests
+        const adminRequests = JSON.parse(localStorage.getItem('adminRequests') || '[]');
+        adminRequests.push(request);
+        localStorage.setItem('adminRequests', JSON.stringify(adminRequests));
+        
+        // Show processing
+        const overlay = document.getElementById('processingOverlay');
+        const text = document.getElementById('processingText');
+        text.innerHTML = 'Processing your payment<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+        overlay.classList.add('active');
+        
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            this.closeSimplePaymentModal();
+            this.showToast('success', 'Payment Submitted', 'Your payment is pending admin approval');
+        }, 1500);
+    }
+    
+    processLoanPaymentFromCard(amount) {
+        // Process card payment - simplified (in real app would integrate with payment gateway)
+        const overlay = document.getElementById('processingOverlay');
+        const text = document.getElementById('processingText');
+        text.innerHTML = 'Processing your payment<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+        overlay.classList.add('active');
+        
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            
+            // Calculate remaining after payment
+            const remaining = this.appState.getLoanRemaining() - amount;
+            
+            // Process payment
+            this.appState.makePayment(amount);
+            
+            // Check if loan is fully repaid
+            if (remaining <= 0) {
+                const successOverlay = document.getElementById('loanSuccessOverlay');
+                successOverlay.classList.add('active');
+            }
+            
+            // Save state
+            this.saveState();
+            this.updateBalanceDisplay();
+            this.closeSimplePaymentModal();
+            
+            // Show success toast
+            this.showToast('success', 'Payment Successful', `₦${amount.toLocaleString()} paid via card`);
+            
+            // Refresh loan display
+            this.updateLoanProgress();
+            this.loadTransactionHistory();
+        }, 2000);
     }
 
     // Top Up Methods - Redirect to unified payment modal

@@ -1266,7 +1266,7 @@
             const approveBtn = document.getElementById('approveBtn');
             const rejectBtn = document.getElementById('rejectBtn');
             
-            // Check for receipt data - be very lenient
+            // Handle ALL receipt data formats - very lenient
             let receiptData = request.receipt || '';
             let hasReceipt = false;
             let imgSrc = '';
@@ -1275,19 +1275,32 @@
             const receiptLen = receiptData ? receiptData.length : 0;
             console.log('Receipt debug - length:', receiptLen, 'starts:', receiptData ? receiptData.substring(0,30) : 'none');
             
-            // Accept ANY receipt data from 50 chars
-            if (receiptData && receiptLen > 50) {
+            // Accept ANY receipt data from 20 chars (more lenient)
+            if (receiptData && receiptLen > 20) {
                 hasReceipt = true;
                 receiptData = receiptData.trim();
                 
-                // Check what kind of data
+                // If already has data:image prefix, use as-is
                 if (receiptData.startsWith('data:image')) {
                     imgSrc = receiptData;
-                } else if (receiptData.startsWith('http')) {
+                } 
+                // If starts with http, treat as URL
+                else if (receiptData.startsWith('http')) {
                     imgSrc = receiptData;
-                } else {
-                    // Try as base64 - add prefix
-                    imgSrc = 'data:image/jpeg;base64,' + receiptData;
+                }
+                // Otherwise assume base64 - try common image formats
+                else {
+                    // Try detecting format from base64 header if present
+                    if (receiptData.startsWith('/9')) {
+                        imgSrc = 'data:image/jpeg;base64,' + receiptData;
+                    } else if (receiptData.startsWith('iVBOR')) {
+                        imgSrc = 'data:image/png;base64,' + receiptData;
+                    } else if (receiptData.startsWith('R0lGO')) {
+                        imgSrc = 'data:image/gif;base64,' + receiptData;
+                    } else {
+                        // Try as generic JPEG base64
+                        imgSrc = 'data:image/jpeg;base64,' + receiptData;
+                    }
                 }
             }
             

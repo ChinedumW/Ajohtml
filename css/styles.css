@@ -2116,6 +2116,39 @@ body {
     font-size: 18px;
 }
 
+/* Payment Method Info (Simple Modal) */
+.payment-method-info {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--bg-color);
+    border-radius: var(--radius-md);
+}
+
+.payment-method-info .info-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.payment-method-info .info-text i {
+    color: var(--primary-color);
+}
+
+.payment-method-info .bank-details {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin-bottom: 10px;
+}
+
+.payment-method-info .instruction-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
 /* Payment Sections */
 .payment-section {
     margin-top: 20px;
