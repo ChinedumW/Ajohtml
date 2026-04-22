@@ -2122,6 +2122,23 @@ body {
     padding: 16px;
     background: var(--bg-color);
     border-radius: var(--radius-md);
+    border: 2px solid var(--primary-lighter);
+}
+
+/* Different styles for each payment method */
+#walletPaymentInfo {
+    border-color: var(--success-color);
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+}
+
+#bankPaymentInfo {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, #faf5ff, #ede9fe);
+}
+
+#cardPaymentInfo {
+    border-color: var(--orange-color, #f97316);
+    background: linear-gradient(135deg, #fff7ed, #ffedd5);
 }
 
 .payment-method-info .info-text {
