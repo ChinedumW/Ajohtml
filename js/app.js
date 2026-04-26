@@ -1775,9 +1775,14 @@ class UIController {
 // ===========================
 // Initialize App
 // ===========================
+let globalUIController; // Global reference for button handlers
+
 document.addEventListener('DOMContentLoaded', () => {
     const appState = new AppState();
-    const uiController = new UIController(appState);
+    globalUIController = new UIController(appState);
+    // For backward compatibility, also expose globally
+    window.uiController = globalUIController;
+    window.appState = appState;
     
     // Add animation styles
     const style = document.createElement('style');
