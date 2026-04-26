@@ -506,12 +506,24 @@
                 <h2>Payment Submitted!</h2>
                 <p style="color:#6b7280;margin:10px 0" id="statusMessage">Your registration is pending admin approval.</p>
                 <div class="badge" id="statusBadge">Pending Approval</div>
-                <button class="btn primary" style="width:100%" onclick="location.href='login.html'">Go to Login</button>
+                <button class="btn primary" style="width:100%" id="successBtn" onclick="goNext()">Go to Dashboard</button>
             </div>
         </div>
     </div>
     <script>
         let mode = 'card', file = null;
+        
+        // Navigate to next page based on payment status
+        function goNext() {
+            const currentUser = JSON.parse(localStorage.getItem('treasureFortuneCurrentUser'));
+            if (currentUser && currentUser.hasPaidRegistration) {
+                // Card payment - user is approved, go to dashboard
+                window.location.href = 'dashboard.html';
+            } else {
+                // Bank transfer - user is pending, go to login
+                window.location.href = 'login.html';
+            }
+        }
         
         // Display user info on load
         window.addEventListener('DOMContentLoaded', function() {

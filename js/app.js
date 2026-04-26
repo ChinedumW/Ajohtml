@@ -353,41 +353,51 @@ class UIController {
         });
         
         // Menu toggle
-        this.menuToggle.addEventListener('click', () => {
-            this.sidebar.classList.toggle('active');
-            this.sidebar.classList.toggle('collapsed');
-            this.mainContent.classList.toggle('expanded');
-        });
+        if (this.menuToggle) {
+            this.menuToggle.addEventListener('click', () => {
+                if (this.sidebar) this.sidebar.classList.toggle('active');
+                if (this.sidebar) this.sidebar.classList.toggle('collapsed');
+                if (this.mainContent) this.mainContent.classList.toggle('expanded');
+            });
+        }
         
         // User profile dropdown
-        this.userProfile.addEventListener('click', () => {
-            this.profileDropdown.classList.toggle('active');
-        });
+        if (this.userProfile) {
+            this.userProfile.addEventListener('click', () => {
+                if (this.profileDropdown) this.profileDropdown.classList.toggle('active');
+            });
+        }
         
         // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!this.userProfile.contains(e.target)) {
-                this.profileDropdown.classList.remove('active');
-            }
-        });
+        if (this.userProfile && this.profileDropdown) {
+            document.addEventListener('click', (e) => {
+                if (!this.userProfile.contains(e.target)) {
+                    this.profileDropdown.classList.remove('active');
+                }
+            });
+        }
         
         // Theme toggle
-        this.themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            const icon = this.themeToggle.querySelector('i');
-            if (document.body.classList.contains('dark-mode')) {
-                icon.classList.remove('fa-moon');
-                icon.classList.add('fa-sun');
-            } else {
-                icon.classList.remove('fa-sun');
-                icon.classList.add('fa-moon');
-            }
-        });
+        if (this.themeToggle) {
+            this.themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                const icon = this.themeToggle.querySelector('i');
+                if (document.body.classList.contains('dark-mode')) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            });
+        }
         
         // Notification icon
-        this.notificationIcon.addEventListener('click', () => {
-            this.navigateTo('notifications');
-        });
+        if (this.notificationIcon) {
+            this.notificationIcon.addEventListener('click', () => {
+                this.navigateTo('notifications');
+            });
+        }
         
         // Quick action buttons - use bank transfer modal for both
         document.getElementById('makePaymentBtn')?.addEventListener('click', () => {
@@ -460,24 +470,32 @@ class UIController {
         });
         
         // Modal
-        this.modalSubmit.addEventListener('click', () => {
-            this.handleModalSubmit();
-        });
+        if (this.modalSubmit) {
+            this.modalSubmit.addEventListener('click', () => {
+                this.handleModalSubmit();
+            });
+        }
         
-        this.modalCancel.addEventListener('click', () => {
-            this.closeModal();
-        });
+        if (this.modalCancel) {
+            this.modalCancel.addEventListener('click', () => {
+                this.closeModal();
+            });
+        }
         
-        this.modalClose.addEventListener('click', () => {
-            this.closeModal();
-        });
+        if (this.modalClose) {
+            this.modalClose.addEventListener('click', () => {
+                this.closeModal();
+            });
+        }
         
         // Close modal on outside click
-        this.modal.addEventListener('click', (e) => {
-            if (e.target === this.modal) {
-                this.closeModal();
-            }
-        });
+        if (this.modal) {
+            this.modal.addEventListener('click', (e) => {
+                if (e.target === this.modal) {
+                    this.closeModal();
+                }
+            });
+        }
         
         // Logout
         document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
